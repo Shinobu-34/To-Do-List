@@ -1,6 +1,7 @@
 import { useState, useMemo } from 'react';
 import type { Task } from '../types';
 import { getTodayISO, isOverdue, getCategoryColor, formatDate } from '../utils';
+import ProductivityChart from './ProductivityChart';
 
 interface DashboardProps {
   tasks: Task[];
@@ -65,12 +66,18 @@ export default function Dashboard({ tasks }: DashboardProps) {
       const weekAgo = new Date();
       weekAgo.setDate(weekAgo.getDate() - 7);
       const weekIso = weekAgo.toISOString().split('T')[0];
-      filtered = filtered.filter(t => t.dueDate >= weekIso && t.dueDate <= todayISO);
+      const weekAhead = new Date();
+      weekAhead.setDate(weekAhead.getDate() + 7);
+      const weekAheadIso = weekAhead.toISOString().split('T')[0];
+      filtered = filtered.filter(t => t.dueDate >= weekIso && t.dueDate <= weekAheadIso);
     } else if (filter === 'MONTH') {
       const monthAgo = new Date();
       monthAgo.setMonth(monthAgo.getMonth() - 1);
       const monthIso = monthAgo.toISOString().split('T')[0];
-      filtered = filtered.filter(t => t.dueDate >= monthIso && t.dueDate <= todayISO);
+      const monthAhead = new Date();
+      monthAhead.setMonth(monthAhead.getMonth() + 1);
+      const monthAheadIso = monthAhead.toISOString().split('T')[0];
+      filtered = filtered.filter(t => t.dueDate >= monthIso && t.dueDate <= monthAheadIso);
     }
 
     return { vibeScore: Math.max(0, score), matrixTasks: filtered, streakMap: streakArray };
@@ -78,6 +85,9 @@ export default function Dashboard({ tasks }: DashboardProps) {
 
   return (
     <div className="animate-fade-in pb-8">
+      {/* Visual Analytics Graph Banner */}
+      <ProductivityChart streakMap={streakMap} tasks={tasks} />
+
       {/* Top Metrics Row */}
       <div className="flex flex-col md:flex-row gap-6 mb-8">
         

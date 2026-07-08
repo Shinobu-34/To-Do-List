@@ -45,6 +45,14 @@ export default function VibeBuddy({ tasks, onAddTask, onUpdateTask, onDeleteTask
 
   const executeActions = (actions: TaskAction[]) => {
     actions.forEach(action => {
+      // Dynamic fallback for dates missing a year
+      if (action.type === 'ADD_TASK' || action.type === 'UPDATE_TASK') {
+        const payload = action.type === 'ADD_TASK' ? action.payload : action.payload.updates;
+        if (payload.dueDate && payload.dueDate.length === 5) {
+          payload.dueDate = `${new Date().getFullYear()}-${payload.dueDate}`;
+        }
+      }
+
       if (action.type === 'ADD_TASK') {
         onAddTask(action.payload);
       } else if (action.type === 'UPDATE_TASK') {

@@ -1,0 +1,100 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* ── Base Resets & Theme Transitions ── */
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  @apply bg-surface-light text-gray-900 transition-colors duration-300;
+  font-family: 'Inter', system-ui, -apple-system, sans-serif;
+}
+
+html.dark body {
+  @apply bg-surface-dark text-gray-100;
+}
+
+/* ── Scrollbar Styling ── */
+::-webkit-scrollbar {
+  width: 6px;
+}
+
+::-webkit-scrollbar-track {
+  @apply bg-transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  @apply bg-gray-300 dark:bg-gray-700 rounded-full;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  @apply bg-gray-400 dark:bg-gray-600;
+}
+
+/* ── Focus Ring Utility ── */
+*:focus-visible {
+  @apply outline-none ring-2 ring-brand-500/50 ring-offset-2 ring-offset-white dark:ring-offset-surface-dark rounded-lg;
+}
+
+/* ── Task Completion Strike-through ── */
+.task-title-completed {
+  text-decoration: line-through;
+  text-decoration-thickness: 2px;
+  text-decoration-color: theme('colors.brand.400');
+}
+
+/* ── Gradient text utility ── */
+.text-gradient {
+  @apply bg-clip-text text-transparent bg-gradient-to-r from-brand-500 to-purple-500;
+}
+
+/* ── Glass card ── */
+.glass-card {
+  @apply bg-white/70 dark:bg-surface-dark-card/70 backdrop-blur-xl border border-white/20 dark:border-white/5;
+}
+
+/* ── Sidebar active indicator ── */
+.sidebar-active {
+  @apply bg-brand-500/10 dark:bg-brand-500/20 text-brand-600 dark:text-brand-400 font-semibold border-r-2 border-brand-500;
+}
+
+/* ── Priority dot pulse ── */
+@keyframes pulseDot {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.5; }
+}
+
+.priority-dot-high {
+  animation: pulseDot 2s ease-in-out infinite;
+}
+
+/* ── Checkbox Styles ── */
+.custom-checkbox {
+  @apply w-5 h-5 rounded-full border-2 border-gray-300 dark:border-gray-600 
+         flex items-center justify-center cursor-pointer transition-all duration-200
+         hover:border-brand-400 dark:hover:border-brand-400;
+}
+
+.custom-checkbox.checked {
+  @apply bg-brand-500 border-brand-500 dark:bg-brand-500 dark:border-brand-500;
+}
+
+/* ── Smooth height transitions ── */
+.expand-enter {
+  animation: expandIn 0.3s ease-out;
+}
+
+@keyframes expandIn {
+  0% {
+    max-height: 0;
+    opacity: 0;
+    transform: translateY(-8px);
+  }
+  100% {
+    max-height: 500px;
+    opacity: 1;
+    transform: translateY(0);
+  }
+}

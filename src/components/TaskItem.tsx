@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Check, Trash2, Calendar, ChevronDown, Pencil } from 'lucide-react';
+import { Check, Trash2, Calendar, ChevronDown, Pencil, Flag } from 'lucide-react';
 import type { Task, PriorityLevel } from '../types';
 import { formatDate, isOverdue, PRIORITY_CONFIG, getCategoryColor, DEFAULT_CATEGORIES } from '../utils';
 import CustomSelect from './CustomSelect';

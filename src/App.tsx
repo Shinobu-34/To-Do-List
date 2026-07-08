@@ -14,6 +14,7 @@ import {
 import Sidebar from './components/Sidebar';
 import Header from './components/Header';
 import TaskForm from './components/TaskForm';
+import FocusCards from './components/FocusCards';
 import TaskList from './components/TaskList';
 import Toast from './components/Toast';
 
@@ -291,6 +292,7 @@ export default function App() {
         />
 
         <section className="flex-1 px-4 sm:px-6 lg:px-8 pb-8 max-w-4xl w-full mx-auto">
+          <FocusCards tasks={tasks} onComplete={(id) => toggleTask(id)} />
           <TaskForm onAddTask={addTask} categories={categories} />
 
           <TaskList

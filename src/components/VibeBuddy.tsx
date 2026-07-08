@@ -18,6 +18,20 @@ export default function VibeBuddy({ tasks, onAddTask, onUpdateTask, onDeleteTask
   const [input, setInput] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  const containerRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (isOpen && containerRef.current && !containerRef.current.contains(event.target as Node)) {
+        setIsOpen(false);
+      }
+    };
+
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, [isOpen]);
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -70,7 +84,7 @@ export default function VibeBuddy({ tasks, onAddTask, onUpdateTask, onDeleteTask
   };
 
   return (
-    <>
+    <div ref={containerRef}>
       {/* Floating Action Button */}
       <button
         onClick={() => setIsOpen(true)}
@@ -166,6 +180,6 @@ export default function VibeBuddy({ tasks, onAddTask, onUpdateTask, onDeleteTask
           </div>
         </form>
       </div>
-    </>
+    </div>
   );
 }

@@ -8,6 +8,7 @@ import {
   Sparkles,
   Tag,
   X,
+  LineChart,
 } from 'lucide-react';
 import type { ActiveFilter } from '../types';
 import { getCategoryColor } from '../utils';
@@ -32,6 +33,7 @@ interface NavItem {
 }
 
 const NAV_ITEMS: NavItem[] = [
+  { filter: 'DASHBOARD', label: 'Dashboard', icon: <LineChart size={18} /> },
   { filter: 'ALL', label: 'All Tasks', icon: <LayoutDashboard size={18} /> },
   { filter: 'TODAY', label: 'Today', icon: <CalendarDays size={18} /> },
   { filter: 'UPCOMING', label: 'Upcoming', icon: <CalendarClock size={18} /> },

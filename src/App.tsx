@@ -15,6 +15,7 @@ import Sidebar from './components/Sidebar';
 import Header from './components/Header';
 import TaskForm from './components/TaskForm';
 import FocusCards from './components/FocusCards';
+import Dashboard from './components/Dashboard';
 import TaskList from './components/TaskList';
 import Toast from './components/Toast';
 import VibeBuddy from './components/VibeBuddy';
@@ -98,7 +99,17 @@ export default function App() {
 
   const toggleTask = useCallback((taskId: string) => {
     setTasks((prev) =>
-      prev.map((t) => (t.id === taskId ? { ...t, isCompleted: !t.isCompleted } : t))
+      prev.map((t) => {
+        if (t.id === taskId) {
+          const nextState = !t.isCompleted;
+          return {
+            ...t,
+            isCompleted: nextState,
+            completedAt: nextState ? getTodayISO() : undefined,
+          };
+        }
+        return t;
+      })
     );
   }, []);
 
@@ -142,6 +153,7 @@ export default function App() {
       TODAY: active.filter((t) => isToday(t.dueDate)).length,
       UPCOMING: active.filter((t) => isUpcoming(t.dueDate)).length,
       COMPLETED: tasks.filter((t) => t.isCompleted).length,
+      DASHBOARD: 0,
     };
   }, [tasks]);
 
@@ -293,17 +305,23 @@ export default function App() {
         />
 
         <section className="flex-1 px-4 sm:px-6 lg:px-8 pb-8 max-w-4xl w-full mx-auto">
-          <FocusCards tasks={tasks} onComplete={(id) => toggleTask(id)} />
-          <TaskForm onAddTask={addTask} categories={categories} />
+          {activeFilter === 'DASHBOARD' ? (
+            <Dashboard tasks={tasks} />
+          ) : (
+            <>
+              <FocusCards tasks={tasks} onComplete={(id) => toggleTask(id)} />
+              <TaskForm onAddTask={addTask} categories={categories} />
 
-          <TaskList
-            groupedTasks={groupedTasks}
-            onToggle={toggleTask}
-            onDelete={deleteTask}
-            onUpdate={updateTask}
-            activeFilter={activeFilter}
-            searchQuery={searchQuery}
-          />
+              <TaskList
+                groupedTasks={groupedTasks}
+                onToggle={toggleTask}
+                onDelete={deleteTask}
+                onUpdate={updateTask}
+                activeFilter={activeFilter}
+                searchQuery={searchQuery}
+              />
+            </>
+          )}
         </section>
       </main>
 

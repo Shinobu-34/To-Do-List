@@ -11,9 +11,10 @@ export interface Task {
   category: string;
   isCompleted: boolean;
   createdAt: string;       // ISO timestamp
+  completedAt?: string;    // ISO timestamp
 }
 
-export type ActiveFilter = 'ALL' | 'TODAY' | 'UPCOMING' | 'COMPLETED';
+export type ActiveFilter = 'ALL' | 'TODAY' | 'UPCOMING' | 'COMPLETED' | 'DASHBOARD';
 
 export type SortMode = 'DATE' | 'PRIORITY';
 

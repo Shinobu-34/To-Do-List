@@ -17,6 +17,7 @@ import TaskForm from './components/TaskForm';
 import FocusCards from './components/FocusCards';
 import TaskList from './components/TaskList';
 import Toast from './components/Toast';
+import VibeBuddy from './components/VibeBuddy';
 
 export default function App() {
   // ── Hydration-safe state init ──
@@ -312,6 +313,14 @@ export default function App() {
           <Toast key={toast.id} toast={toast} onDismiss={dismissToast} />
         ))}
       </div>
+
+      {/* VibeBuddy Chatbot */}
+      <VibeBuddy
+        tasks={tasks}
+        onAddTask={addTask}
+        onUpdateTask={updateTask}
+        onDeleteTask={deleteTask}
+      />
     </div>
   );
 }

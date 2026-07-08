@@ -146,12 +146,20 @@ export default function ProductivityChart({ streakMap, tasks }: ProductivityChar
               const x = (i / (chartData.length - 1)) * 600;
               const dateObj = new Date(d.date);
               const label = i === chartData.length - 1 ? 'Today' : dateObj.toLocaleDateString('en-US', { weekday: 'short' });
+              const completedY = 200 - (d.completed / maxTasks) * 160;
+              const failedY = 200 - (d.failed / maxTasks) * 160;
 
               return (
                 <g key={d.date} className="group">
                   <text x={x} y="225" textAnchor="middle" className="text-xs fill-gray-500 dark:fill-gray-400 font-medium">
                     {label}
                   </text>
+                  {hoverIndex === i && (
+                    <>
+                      <circle cx={x} cy={completedY} r="6" fill="#0f172a" stroke="#10b981" strokeWidth="2" className="animate-pulse drop-shadow-[0_0_8px_rgba(16,185,129,0.8)] pointer-events-none" />
+                      <circle cx={x} cy={failedY} r="6" fill="#0f172a" stroke="#f43f5e" strokeWidth="2" className="animate-pulse drop-shadow-[0_0_8px_rgba(244,63,94,0.8)] pointer-events-none" />
+                    </>
+                  )}
                 </g>
               );
             })}

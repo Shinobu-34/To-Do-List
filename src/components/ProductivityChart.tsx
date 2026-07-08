@@ -82,6 +82,12 @@ export default function ProductivityChart({ streakMap, tasks }: ProductivityChar
     return { segments, totalCompleted };
   }, [tasks]);
 
+  // Tooltip & Dots Coordinates
+  const hoverData = hoverIndex !== null ? chartData[hoverIndex] : null;
+  const hoverX = hoverIndex !== null ? (hoverIndex / (chartData.length - 1)) * 600 : 0;
+  const hoverCompletedY = hoverData ? 200 - (hoverData.completed / maxTasks) * 160 : 200;
+  const hoverFailedY = hoverData ? 200 - (hoverData.failed / maxTasks) * 160 : 200;
+
   // Helper to get hex colors from category bg-classes for the SVG strokes
   const getColorHex = (catColor: string) => {
     if (catColor.includes('brand')) return '#8b5cf6'; // purple/brand
@@ -154,15 +160,23 @@ export default function ProductivityChart({ streakMap, tasks }: ProductivityChar
                   <text x={x} y="225" textAnchor="middle" className="text-xs fill-gray-500 dark:fill-gray-400 font-medium">
                     {label}
                   </text>
-                  {hoverIndex === i && (
-                    <>
-                      <circle cx={x} cy={completedY} r="6" fill="#0f172a" stroke="#10b981" strokeWidth="2" className="animate-pulse drop-shadow-[0_0_8px_rgba(16,185,129,0.8)] pointer-events-none" />
-                      <circle cx={x} cy={failedY} r="6" fill="#0f172a" stroke="#f43f5e" strokeWidth="2" className="animate-pulse drop-shadow-[0_0_8px_rgba(244,63,94,0.8)] pointer-events-none" />
-                    </>
-                  )}
                 </g>
               );
             })}
+
+            {/* Active Hover Dots (Fluid) */}
+            <circle 
+              cx={hoverX} cy={hoverCompletedY} r="6" 
+              fill="#0f172a" stroke="#10b981" strokeWidth="2" 
+              className="drop-shadow-[0_0_8px_rgba(16,185,129,0.8)] pointer-events-none" 
+              style={{ opacity: hoverIndex !== null ? 1 : 0, transition: 'all 0.2s cubic-bezier(0.25, 1, 0.5, 1)' }} 
+            />
+            <circle 
+              cx={hoverX} cy={hoverFailedY} r="6" 
+              fill="#0f172a" stroke="#f43f5e" strokeWidth="2" 
+              className="drop-shadow-[0_0_8px_rgba(244,63,94,0.8)] pointer-events-none" 
+              style={{ opacity: hoverIndex !== null ? 1 : 0, transition: 'all 0.2s cubic-bezier(0.25, 1, 0.5, 1)' }} 
+            />
           </svg>
 
           {/* Invisible Overlay for precise hover detection without blocking SVG layout */}
@@ -172,31 +186,38 @@ export default function ProductivityChart({ streakMap, tasks }: ProductivityChar
                 key={d.date}
                 className="flex-1 h-full relative cursor-crosshair group"
                 onMouseEnter={() => setHoverIndex(i)}
-              >
-                {/* Tooltip */}
-                {hoverIndex === i && (
-                  <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-10 w-max pointer-events-none">
-                    <div className="bg-slate-900/90 backdrop-blur-xl border border-slate-700/50 rounded-xl p-3 shadow-2xl animate-fade-in">
-                      <div className="text-xs text-gray-400 mb-1.5 text-center font-medium">
-                        {new Date(d.date).toLocaleDateString('en-US', { weekday: 'long', month: 'short', day: 'numeric' })}
-                      </div>
-                      <div className="flex gap-4">
-                        <div className="flex items-center gap-1.5 text-emerald-400 font-bold text-sm">
-                          🎯 {d.completed}
-                        </div>
-                        <div className="flex items-center gap-1.5 text-rose-400 font-bold text-sm">
-                          ⚠️ {d.failed}
-                        </div>
-                      </div>
+              />
+            ))}
+          </div>
+
+          {/* Tooltip Overlay (Fluid) */}
+          <div 
+            className="absolute top-0 bottom-0 pointer-events-none z-10"
+            style={{ 
+              left: `calc(${(hoverIndex !== null ? (hoverIndex / (chartData.length - 1)) * 100 : 0)}%)`,
+              opacity: hoverIndex !== null ? 1 : 0,
+              transition: 'all 0.2s cubic-bezier(0.25, 1, 0.5, 1)'
+            }}
+          >
+            <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-max">
+              {hoverData && (
+                <div className="bg-slate-900/90 backdrop-blur-xl border border-slate-700/50 rounded-xl p-3 shadow-2xl">
+                  <div className="text-xs text-gray-400 mb-1.5 text-center font-medium">
+                    {new Date(hoverData.date).toLocaleDateString('en-US', { weekday: 'long', month: 'short', day: 'numeric' })}
+                  </div>
+                  <div className="flex gap-4">
+                    <div className="flex items-center gap-1.5 text-emerald-400 font-bold text-sm">
+                      🎯 {hoverData.completed}
+                    </div>
+                    <div className="flex items-center gap-1.5 text-rose-400 font-bold text-sm">
+                      ⚠️ {hoverData.failed}
                     </div>
                   </div>
-                )}
-                {/* Vertical Highlight Line */}
-                {hoverIndex === i && (
-                  <div className="absolute top-0 bottom-0 left-1/2 -translate-x-1/2 w-[1px] bg-white/10" />
-                )}
-              </div>
-            ))}
+                </div>
+              )}
+            </div>
+            {/* Vertical Highlight Line */}
+            <div className="absolute top-[40px] bottom-[40px] left-1/2 -translate-x-1/2 w-[1px] bg-white/10" />
           </div>
         </div>
       </div>

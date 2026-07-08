@@ -5,6 +5,8 @@ interface SelectOption {
   value: string;
   label: string;
   icon?: React.ReactNode;
+  textColor?: string;
+  dotColor?: string;
 }
 
 interface CustomSelectProps {
@@ -66,7 +68,7 @@ export default function CustomSelect({
           }
           bg-gray-50 dark:bg-white/5
           hover:bg-gray-100 dark:hover:bg-white/10
-          text-gray-700 dark:text-gray-300
+          ${selected?.textColor || 'text-gray-700 dark:text-gray-300'}
           ${open ? 'ring-2 ring-brand-500/30 border-brand-400 dark:border-brand-500/40' : 'hover:border-gray-200 dark:hover:border-white/10'}
         `}
         aria-label={label}
@@ -113,8 +115,8 @@ export default function CustomSelect({
                 className={`
                   w-full flex items-center gap-2.5 px-3 py-2 text-sm transition-all duration-100
                   ${isSelected
-                    ? 'bg-brand-500/10 dark:bg-brand-500/15 text-brand-600 dark:text-brand-400 font-medium'
-                    : 'text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700/50 hover:text-gray-900 dark:hover:text-white'
+                    ? `bg-brand-500/10 dark:bg-brand-500/15 font-medium ${option.textColor || 'text-brand-600 dark:text-brand-400'}`
+                    : `${option.textColor || 'text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white'} hover:bg-gray-50 dark:hover:bg-gray-700/50`
                   }
                 `}
                 role="option"
@@ -123,7 +125,7 @@ export default function CustomSelect({
                 {option.icon && <span className="shrink-0">{option.icon}</span>}
                 <span className="flex-1 text-left truncate">{option.label}</span>
                 {isSelected && (
-                  <span className="w-1.5 h-1.5 rounded-full bg-brand-500 shrink-0" />
+                  <span className={`w-1.5 h-1.5 rounded-full shrink-0 ${option.dotColor || 'bg-brand-500'}`} />
                 )}
               </button>
             );

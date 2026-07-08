@@ -19,16 +19,22 @@ const PRIORITY_OPTIONS = [
     value: 'HIGH',
     label: 'High',
     icon: <span className="w-2.5 h-2.5 rounded-full bg-rose-500 shadow-sm shadow-rose-500/40" />,
+    textColor: 'text-rose-600 dark:text-rose-400',
+    dotColor: 'bg-rose-500',
   },
   {
     value: 'MEDIUM',
     label: 'Medium',
     icon: <span className="w-2.5 h-2.5 rounded-full bg-amber-500 shadow-sm shadow-amber-500/40" />,
+    textColor: 'text-amber-600 dark:text-amber-400',
+    dotColor: 'bg-amber-500',
   },
   {
     value: 'LOW',
     label: 'Low',
     icon: <span className="w-2.5 h-2.5 rounded-full bg-emerald-500 shadow-sm shadow-emerald-500/40" />,
+    textColor: 'text-emerald-600 dark:text-emerald-400',
+    dotColor: 'bg-emerald-500',
   },
 ];
 
@@ -145,6 +151,7 @@ export default function TaskItem({ task, onToggle, onDelete, onUpdate, index }: 
                   value={editPriority}
                   onChange={(val) => setEditPriority(val as PriorityLevel)}
                   options={PRIORITY_OPTIONS}
+                  icon={<Flag size={14} className={PRIORITY_CONFIG[editPriority].color} />}
                   label="Edit priority"
                   compact
                 />

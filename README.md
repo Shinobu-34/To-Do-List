@@ -60,3 +60,6 @@ Task-Do is a premium, local-first to-do list web application designed to help yo
 
 ---
 *Stay organized, stay vibing.*
+---
+
+&copy; 2026 Shinobu-34. All Rights Reserved

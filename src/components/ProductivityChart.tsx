@@ -1,5 +1,6 @@
 import { useState, useMemo } from 'react';
 import type { Task } from '../types';
+import { getSpaceIcon } from '../utils';
 interface StreakData {
   date: string;
   total: number;
@@ -328,8 +329,8 @@ export default function ProductivityChart({ streakMap, tasks }: ProductivityChar
             <div className="w-full space-y-2.5">
               {donutData.legendSegments.map((seg) => (
                 <div key={seg.label} className="flex items-center justify-between text-sm">
-                  <div className="flex items-center gap-2">
-                    <div className={`w-2.5 h-2.5 rounded-full ${seg.colorClass}`} />
+                  <div className="flex items-center gap-2 text-sm text-slate-300">
+                    <span className="text-base leading-none flex-shrink-0">{getSpaceIcon(seg.label)}</span>
                     <span className="text-gray-700 dark:text-gray-300 font-medium">{seg.label}</span>
                   </div>
                   <span className="font-bold text-gray-900 dark:text-white">

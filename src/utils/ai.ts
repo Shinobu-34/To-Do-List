@@ -142,8 +142,21 @@ function parseAIResponse(rawContent: string): AIResponse {
 }
 
 export async function generateWeeklyRoast(tasks: Task[]): Promise<string> {
-  const completed = tasks.filter(t => t.isCompleted);
-  const overdue = tasks.filter(t => !t.isCompleted && isOverdue(t.dueDate));
+  const today = getTodayISO();
+  const sevenDaysAgo = new Date();
+  sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
+  const sevenDaysAgoStr = sevenDaysAgo.toISOString().split('T')[0];
+
+  // Filter tasks within the last 7 days
+  let weeklyTasks = tasks.filter(t => t.dueDate >= sevenDaysAgoStr && t.dueDate <= today);
+
+  // If no tasks found in that window, fallback to all tasks to avoid empty payload
+  if (weeklyTasks.length === 0) {
+    weeklyTasks = tasks;
+  }
+
+  const completed = weeklyTasks.filter(t => t.isCompleted);
+  const overdue = weeklyTasks.filter(t => !t.isCompleted && t.dueDate < today);
 
   const prompt = `
 You are VibeBuddy, acting as a witty, slightly sarcastic, yet ultimately supportive life coach. 
@@ -171,6 +184,7 @@ Keep it concise, punchy, and formatted beautifully with emojis.
         model: MODEL,
         messages: [{ role: 'user', content: prompt }],
         temperature: 0.8,
+        max_tokens: 1000,
       }),
     });
 
@@ -181,7 +195,7 @@ Keep it concise, punchy, and formatted beautifully with emojis.
     const data = await response.json();
     return data.choices[0].message.content;
   } catch (error) {
-    console.error('Roast API Error:', error);
+    console.error("Roast Fetch Error:", error);
     return "Whoops, I couldn't connect to my brain to roast you. You're safe... for now.";
   }
 }

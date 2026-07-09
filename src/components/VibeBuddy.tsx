@@ -244,9 +244,13 @@ export default function VibeBuddy({ tasks, onAddTask, onUpdateTask, onDeleteTask
 
       {/* Roast Modal */}
       {roastContent && (
-        <div className="fixed inset-0 z-[200] bg-black/80 backdrop-blur-sm flex items-center justify-center p-4 animate-fade-in">
-          <div className="bg-white dark:bg-surface-dark-card w-full max-w-2xl max-h-[80vh] rounded-3xl shadow-2xl border border-gray-200 dark:border-white/10 overflow-hidden flex flex-col animate-slide-up">
-            <div className="flex justify-between items-center p-6 border-b border-gray-100 dark:border-white/10 bg-gradient-to-r from-brand-500/10 to-purple-500/10">
+        <div className="fixed inset-0 z-[200] flex items-center justify-center p-4">
+          <div 
+            className="fixed inset-0 bg-slate-950/60 backdrop-blur-md animate-fade-in" 
+            onClick={() => setRoastContent(null)}
+          />
+          <div className="relative z-50 w-full max-w-2xl max-h-[85vh] overflow-y-auto bg-white dark:bg-slate-900 border border-gray-200 dark:border-slate-800 rounded-2xl p-6 shadow-2xl overscroll-contain will-change-transform transform translate-z-0 animate-scale-in">
+            <div className="flex justify-between items-center mb-6">
               <h2 className="text-2xl font-black text-gray-900 dark:text-white flex items-center gap-2">
                 <Sparkles className="text-brand-500" /> Weekly Wrap & Roast
               </h2>
@@ -258,7 +262,7 @@ export default function VibeBuddy({ tasks, onAddTask, onUpdateTask, onDeleteTask
               </button>
             </div>
             
-            <div className="p-6 overflow-y-auto text-gray-800 dark:text-gray-200 text-lg">
+            <div className="text-gray-800 dark:text-gray-200 text-lg">
               {renderMarkdown(roastContent)}
             </div>
           </div>

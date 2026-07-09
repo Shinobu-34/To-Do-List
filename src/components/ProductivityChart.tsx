@@ -49,40 +49,73 @@ export default function ProductivityChart({ streakMap, tasks }: ProductivityChar
   const completedPath = useMemo(() => generatePath('completed'), [chartData, maxTasks]);
   const failedPath = useMemo(() => generatePath('failed'), [chartData, maxTasks]);
 
-  // 2. Priority Donut Data
+  // 2. Category Donut Data with Priority Colors
   const donutData = useMemo(() => {
-    const priorityCounts: Record<string, number> = {};
+    const categoryCounts: Record<string, number> = {};
+    const categoryHighestPriority: Record<string, 'HIGH' | 'MEDIUM' | 'LOW'> = {};
+    let highCount = 0;
+    let mediumCount = 0;
+    let lowCount = 0;
     let totalCompleted = 0;
+
+    const rank = { HIGH: 3, MEDIUM: 2, LOW: 1 };
 
     tasks.forEach((t) => {
       if (t.isCompleted) {
-        const label = t.priority === 'HIGH' ? 'High' : t.priority === 'MEDIUM' ? 'Medium' : 'Low';
-        priorityCounts[label] = (priorityCounts[label] || 0) + 1;
+        categoryCounts[t.category] = (categoryCounts[t.category] || 0) + 1;
         totalCompleted++;
+
+        if (t.priority === 'HIGH') highCount++;
+        else if (t.priority === 'MEDIUM') mediumCount++;
+        else if (t.priority === 'LOW') lowCount++;
+
+        const currentPrio = categoryHighestPriority[t.category];
+        if (!currentPrio || rank[t.priority] > rank[currentPrio]) {
+          categoryHighestPriority[t.category] = t.priority;
+        }
       }
     });
 
-    const priorityColors: Record<string, string> = { High: '#f43f5e', Medium: '#eab308', Low: '#10b981' };
-    const priorityClasses: Record<string, string> = { High: 'bg-rose-500', Medium: 'bg-amber-500', Low: 'bg-emerald-500' };
+    const priorityColors: Record<string, string> = { HIGH: '#f43f5e', MEDIUM: '#eab308', LOW: '#10b981' };
+    const priorityClasses: Record<string, string> = { HIGH: 'bg-rose-500', MEDIUM: 'bg-amber-500', LOW: 'bg-emerald-500' };
 
-    const segments: { label: string; value: number; colorClass: string; hexColor: string; percentage: number; offset: number }[] = [];
-    let cumulativeOffset = 0;
+    // Legend data (Categories)
+    const legendSegments: { label: string; value: number; colorClass: string; percentage: number }[] = [];
     
-    // Sort to keep consistent coloring order
-    Object.entries(priorityCounts).sort((a,b) => b[1] - a[1]).forEach(([label, val]) => {
+    Object.entries(categoryCounts).sort((a,b) => b[1] - a[1]).forEach(([cat, val]) => {
       const percentage = (val / totalCompleted) * 100;
-      segments.push({
-        label,
+      const prio = categoryHighestPriority[cat] || 'LOW';
+      
+      legendSegments.push({
+        label: cat,
         value: val,
         percentage,
+        colorClass: priorityClasses[prio],
+      });
+    });
+
+    // Ring data (Priorities)
+    const rawRingData = [
+      { name: 'High', value: highCount, color: '#f43f5e' },
+      { name: 'Medium', value: mediumCount, color: '#eab308' },
+      { name: 'Low', value: lowCount, color: '#10b981' }
+    ].filter(d => d.value > 0);
+
+    const ringSegments: { name: string; percentage: number; offset: number; hexColor: string }[] = [];
+    let cumulativeOffset = 0;
+    
+    rawRingData.forEach(d => {
+      const percentage = (d.value / totalCompleted) * 100;
+      ringSegments.push({
+        name: d.name,
+        percentage,
         offset: cumulativeOffset,
-        hexColor: priorityColors[label] || '#64748b',
-        colorClass: priorityClasses[label] || 'bg-slate-500',
+        hexColor: d.color
       });
       cumulativeOffset += percentage;
     });
 
-    return { segments, totalCompleted };
+    return { legendSegments, ringSegments, totalCompleted };
   }, [tasks]);
 
   // Tooltip & Dots Coordinates
@@ -215,9 +248,9 @@ export default function ProductivityChart({ streakMap, tasks }: ProductivityChar
         </div>
       </div>
 
-      {/* RIGHT COLUMN: Priority Donut (35%) */}
+      {/* RIGHT COLUMN: Category Donut (35%) */}
       <div className="w-full lg:w-[35%] bg-slate-900/40 dark:bg-surface-dark-card/80 backdrop-blur-md rounded-2xl p-6 border border-slate-800/60 shadow-xl flex flex-col">
-        <h3 className="text-lg font-bold text-gray-900 dark:text-white mb-6">Completed by Priority</h3>
+        <h3 className="text-lg font-bold text-gray-900 dark:text-white mb-6">Completed Categories</h3>
         
         {donutData.totalCompleted === 0 ? (
           <div className="flex-1 flex items-center justify-center text-sm text-gray-500">
@@ -228,13 +261,13 @@ export default function ProductivityChart({ streakMap, tasks }: ProductivityChar
             <div className="relative w-40 h-40 mb-6">
               <svg viewBox="0 0 100 100" className="w-full h-full transform -rotate-90">
                 <circle cx="50" cy="50" r="40" fill="none" stroke="currentColor" className="text-gray-100 dark:text-white/5" strokeWidth="12" />
-                {donutData.segments.map((seg) => {
+                {donutData.ringSegments.map((seg) => {
                   const circumference = 2 * Math.PI * 40;
                   const dashValue = (seg.percentage / 100) * circumference;
                   const offsetValue = (seg.offset / 100) * circumference;
                   return (
                     <circle 
-                      key={seg.label}
+                      key={seg.name}
                       cx="50" cy="50" r="40" 
                       fill="none" 
                       stroke={seg.hexColor}
@@ -253,7 +286,7 @@ export default function ProductivityChart({ streakMap, tasks }: ProductivityChar
             </div>
 
             <div className="w-full space-y-2.5">
-              {donutData.segments.map((seg) => (
+              {donutData.legendSegments.map((seg) => (
                 <div key={seg.label} className="flex items-center justify-between text-sm">
                   <div className="flex items-center gap-2">
                     <div className={`w-2.5 h-2.5 rounded-full ${seg.colorClass}`} />

@@ -1,65 +1,65 @@
-# Task-Do
+# Task-Do: The Gamified Productivity Command Center
 
-Task-Do is a premium, local-first to-do list web application designed to help you stay organized with style. It features a modern, responsive interface with beautiful custom components, smooth animations, and dark mode support.
+Task-Do is a premium, highly-interactive, and gamified productivity web application. Designed to blend modern glassmorphic aesthetics with deep RPG mechanics, it turns your daily task management into an addictive game where you earn XP, level up, and purchase custom rewards. 
 
-## 🚀 Tech Stack
-
-- **Framework:** React 19 + Vite
-- **Language:** TypeScript
-- **Styling:** Tailwind CSS (Utility-first, dark mode, custom animations)
-- **Icons:** Lucide React
-- **State Management:** React Context / standard hooks (`useState`, `useMemo`, `useCallback`)
-- **Data Persistence:** Browser `localStorage` (Local-first, no backend required)
+Built with React, Tailwind CSS, and Vite, this application is lightweight, blindingly fast, and heavily localized.
 
 ## ✨ Features
 
-- **Task Lifecycle (CRUD):**
-  - Quick-add tasks inline or expand for more options (description, date, priority, category).
-  - Tasks are smartly grouped into Overdue, Today, and Later.
-  - Inline editing support with Save/Cancel.
-  - Checkbox toggle with strike-through and opacity transitions.
-  - Deleting tasks shows a toast notification with an **Undo** action.
-- **Advanced Filtering & Sorting:**
-  - **Sidebar Filters:** View All, Today, Upcoming, or Completed tasks. Real-time counts are displayed.
-  - **Category Filters:** Dynamically generated from your tasks (e.g., Work, Personal, Fitness).
-  - **Search:** Real-time text filtering across task titles and descriptions.
-  - **Sorting:** Toggle between sorting by Due Date (ascending) and Priority (High → Low).
-- **Custom UI Components (Premium Aesthetic):**
-  - **Custom Select Dropdowns:** Replaces native `<select>` for Priorities and Categories with fully accessible, animated, dark-mode-compatible floating panels featuring colored indicators.
-  - **Custom Date Picker:** A beautiful, bespoke calendar popover for selecting due dates, highlighting 'Today' and the selected date.
-  - **Empty States:** Beautiful vector illustrations and encouraging messages when no tasks match the current view.
-  - **Theme Toggle:** Switch between Light and Dark mode seamlessly.
-- **Hydration Safe:** Safely loads `localStorage` state on the client side to avoid SSR mismatch issues (if adapted to Next.js).
+- **🎮 RPG Leveling System:** Turn productivity into a game. Completing tasks earns you XP and Coins based on priority (High = 50, Medium = 30, Low = 10). Overdue tasks will deduct your XP! Level up to trigger beautiful confetti explosions.
+- **🧘 Zen Mode Pomodoro Timer:** Click the 'Play' icon on any urgent task to lock yourself into a beautiful, immersive, full-screen deep work overlay complete with built-in ambient audio (Lo-Fi, Rain, Typing). Finish the 25-minute block for +100 bonus XP.
+- **🛍️ Dopamine Market (Self-Rewards):** Spend your hard-earned Coins to "purchase" custom real-life rewards you've set up (e.g., 30 Minutes of Video Games, Coffee Break, Watch an Episode).
+- **🤖 VibeBuddy AI Assistant:** Your witty, slightly sarcastic AI coach (powered by OpenRouter/Gemini). It can understand natural language to add, update, and organize tasks. Hit "Generate Weekly Review" to get praised for your wins and playfully roasted for your procrastinations.
+- **⚡ Quick Wins Carousel:** The most urgent, high-priority, or overdue tasks are instantly surfaced in a carousel at the top of your dashboard.
+- **💫 Interactive Micro-Animations:** Every time you expand a task to read its details, a GPU-accelerated micro-animation fires randomly (Flip3D, Circle Ripple, Elastic Pop, etc.) to keep interactions fresh and visually stunning.
+- **📈 Accountability Matrix:** View all your data through an ultra-modern spreadsheet layout and a 35-day Consistency Heatmap that adapts flawlessly to Light and Dark modes.
+- **📁 Smart Spaces:** Organize your life into Spaces (like 'Work', 'Fitness', 'Personal'). Spaces automatically get assigned smart emoji icons.
+- **🌙 Dark/Light Mode & Glassmorphism:** A breathtaking UI engineered with deep `backdrop-blur` layers, glowing borders, and seamless theme switching.
 
-## 🛠️ How to Run Locally
+## 🚀 Getting Started
 
-1. **Prerequisites:** Ensure you have [Node.js](https://nodejs.org/) installed on your machine.
-2. **Open Terminal:** Open your preferred terminal (PowerShell, Command Prompt, etc.).
-3. **Navigate to Project:**
+### Prerequisites
+
+- Node.js (v18+ recommended)
+- npm or pnpm or yarn
+- An OpenRouter API Key (for VibeBuddy AI)
+
+### Installation
+
+1. **Clone the repository:**
    ```bash
-   cd "c:\Projects\To-Do list"
+   git clone https://github.com/yourusername/task-do.git
+   cd task-do
    ```
-4. **Install Dependencies:**
+
+2. **Install dependencies:**
    ```bash
    npm install
    ```
-   *(Note: You can also just double-click the `install.bat` file in the project folder to install dependencies).*
-5. **Start Development Server:**
+
+3. **Set up Environment Variables:**
+   Rename `.env.example` to `.env` and add your OpenRouter API key.
+   ```bash
+   VITE_OPENROUTER_API_KEY=your_api_key_here
+   ```
+
+4. **Start the Development Server:**
    ```bash
    npm run dev
    ```
-6. **Open in Browser:** Navigate to `http://localhost:5173` (or the URL provided in your terminal).
 
-## 📝 Function Updates & Changelog
+## 🧠 Tech Stack
 
-*(This section tracks significant function changes and refactors as per request)*
+- **Framework:** React 19 + TypeScript + Vite
+- **Styling:** Tailwind CSS + custom CSS animations (`@keyframes`)
+- **Icons:** Lucide React
+- **AI Integration:** OpenRouter API (Gemini-3.5-flash by default)
+- **Data Persistence:** Client-side `localStorage` (No database required, fully private)
 
-- **Initial Setup:** Implemented core CRUD loop (`addTask`, `toggleTask`, `deleteTask`, `updateTask`) in `App.tsx` using `useCallback` and `useState`.
-- **Derived State:** Added `useMemo` hooks in `App.tsx` for `visibleTasks`, `groupedTasks`, `categories`, and `filterCounts` for optimized rendering.
-- **Component Refactor:** Replaced native HTML `<select>` and `<input type="date">` in `TaskForm` and `TaskItem` with bespoke `CustomSelect` and `CustomDatePicker` components for a premium look.
+## 🎯 How to Use
 
----
-*Stay organized, stay vibing.*
----
+When you open the app, click the **"❓ Take a Tour"** button in the top right corner for a guided 5-step onboarding experience walking you through the RPG mechanics, Quick Wins, the Matrix, and the Market!
 
-&copy; 2026 Shinobu-34. All Rights Reserved
+## 📜 License
+
+Distributed under the MIT License. See `LICENSE` for more information.

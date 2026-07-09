@@ -1,7 +1,5 @@
 import { useState, useMemo } from 'react';
 import type { Task } from '../types';
-import { getCategoryColor } from '../utils';
-
 interface StreakData {
   date: string;
   total: number;
@@ -51,30 +49,35 @@ export default function ProductivityChart({ streakMap, tasks }: ProductivityChar
   const completedPath = useMemo(() => generatePath('completed'), [chartData, maxTasks]);
   const failedPath = useMemo(() => generatePath('failed'), [chartData, maxTasks]);
 
-  // 2. Category Donut Data
+  // 2. Priority Donut Data
   const donutData = useMemo(() => {
-    const categoryCounts: Record<string, number> = {};
+    const priorityCounts: Record<string, number> = {};
     let totalCompleted = 0;
 
     tasks.forEach((t) => {
       if (t.isCompleted) {
-        categoryCounts[t.category] = (categoryCounts[t.category] || 0) + 1;
+        const label = t.priority === 'HIGH' ? 'High' : t.priority === 'MEDIUM' ? 'Medium' : 'Low';
+        priorityCounts[label] = (priorityCounts[label] || 0) + 1;
         totalCompleted++;
       }
     });
 
-    const segments: { category: string; value: number; colorClass: string; percentage: number; offset: number }[] = [];
+    const priorityColors: Record<string, string> = { High: '#f43f5e', Medium: '#eab308', Low: '#10b981' };
+    const priorityClasses: Record<string, string> = { High: 'bg-rose-500', Medium: 'bg-amber-500', Low: 'bg-emerald-500' };
+
+    const segments: { label: string; value: number; colorClass: string; hexColor: string; percentage: number; offset: number }[] = [];
     let cumulativeOffset = 0;
     
     // Sort to keep consistent coloring order
-    Object.entries(categoryCounts).sort((a,b) => b[1] - a[1]).forEach(([cat, val]) => {
+    Object.entries(priorityCounts).sort((a,b) => b[1] - a[1]).forEach(([label, val]) => {
       const percentage = (val / totalCompleted) * 100;
       segments.push({
-        category: cat,
+        label,
         value: val,
         percentage,
         offset: cumulativeOffset,
-        colorClass: getCategoryColor(cat), // e.g. 'bg-blue-500' -> we need stroke color though, handled in SVG classes below or style mapping.
+        hexColor: priorityColors[label] || '#64748b',
+        colorClass: priorityClasses[label] || 'bg-slate-500',
       });
       cumulativeOffset += percentage;
     });
@@ -87,16 +90,6 @@ export default function ProductivityChart({ streakMap, tasks }: ProductivityChar
   const hoverX = hoverIndex !== null ? (hoverIndex / (chartData.length - 1)) * 600 : 0;
   const hoverCompletedY = hoverData ? 200 - (hoverData.completed / maxTasks) * 160 : 200;
   const hoverFailedY = hoverData ? 200 - (hoverData.failed / maxTasks) * 160 : 200;
-
-  // Helper to get hex colors from category bg-classes for the SVG strokes
-  const getColorHex = (catColor: string) => {
-    if (catColor.includes('brand')) return '#8b5cf6'; // purple/brand
-    if (catColor.includes('blue')) return '#3b82f6';
-    if (catColor.includes('emerald')) return '#10b981';
-    if (catColor.includes('rose')) return '#f43f5e';
-    if (catColor.includes('amber')) return '#f59e0b';
-    return '#64748b'; // slate fallback
-  };
 
   return (
     <div className="flex flex-col lg:flex-row gap-6 mb-8 animate-fade-in">
@@ -222,9 +215,9 @@ export default function ProductivityChart({ streakMap, tasks }: ProductivityChar
         </div>
       </div>
 
-      {/* RIGHT COLUMN: Category Donut (35%) */}
+      {/* RIGHT COLUMN: Priority Donut (35%) */}
       <div className="w-full lg:w-[35%] bg-slate-900/40 dark:bg-surface-dark-card/80 backdrop-blur-md rounded-2xl p-6 border border-slate-800/60 shadow-xl flex flex-col">
-        <h3 className="text-lg font-bold text-gray-900 dark:text-white mb-6">Completed Categories</h3>
+        <h3 className="text-lg font-bold text-gray-900 dark:text-white mb-6">Completed by Priority</h3>
         
         {donutData.totalCompleted === 0 ? (
           <div className="flex-1 flex items-center justify-center text-sm text-gray-500">
@@ -241,10 +234,10 @@ export default function ProductivityChart({ streakMap, tasks }: ProductivityChar
                   const offsetValue = (seg.offset / 100) * circumference;
                   return (
                     <circle 
-                      key={seg.category}
+                      key={seg.label}
                       cx="50" cy="50" r="40" 
                       fill="none" 
-                      stroke={getColorHex(seg.colorClass)}
+                      stroke={seg.hexColor}
                       strokeWidth="12"
                       strokeDasharray={`${dashValue} ${circumference}`}
                       strokeDashoffset={-offsetValue}
@@ -261,10 +254,10 @@ export default function ProductivityChart({ streakMap, tasks }: ProductivityChar
 
             <div className="w-full space-y-2.5">
               {donutData.segments.map((seg) => (
-                <div key={seg.category} className="flex items-center justify-between text-sm">
+                <div key={seg.label} className="flex items-center justify-between text-sm">
                   <div className="flex items-center gap-2">
                     <div className={`w-2.5 h-2.5 rounded-full ${seg.colorClass}`} />
-                    <span className="text-gray-700 dark:text-gray-300 font-medium">{seg.category}</span>
+                    <span className="text-gray-700 dark:text-gray-300 font-medium">{seg.label}</span>
                   </div>
                   <span className="font-bold text-gray-900 dark:text-white">
                     {Math.round(seg.percentage)}%

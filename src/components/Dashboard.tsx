@@ -11,6 +11,7 @@ type TimeFilter = 'ALL' | 'WEEK' | 'MONTH' | 'FAILED';
 
 export default function Dashboard({ tasks }: DashboardProps) {
   const [filter, setFilter] = useState<TimeFilter>('ALL');
+  const [hoveredCell, setHoveredCell] = useState<{ date: string, completed: number, total: number, x: number, y: number } | null>(null);
 
   const todayISO = getTodayISO();
 
@@ -124,18 +125,36 @@ export default function Dashboard({ tasks }: DashboardProps) {
         {/* Streak Heatmap Card */}
         <div className="flex-1 bg-white/50 dark:bg-surface-dark-card/80 backdrop-blur-xl rounded-3xl p-6 border border-gray-100 dark:border-white/5 shadow-xl">
           <h3 className="text-sm font-bold text-gray-900 dark:text-white mb-3">35-Day Consistency Heatmap</h3>
-          <div className="flex flex-wrap gap-1.5">
+          <div className="flex flex-wrap gap-1.5 relative">
             {streakMap.map((day) => {
-              let bg = "bg-gray-100 dark:bg-white/5";
-              if (day.status === 'perfect') bg = "bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.5)]";
-              else if (day.status === 'failed') bg = "bg-rose-500 shadow-[0_0_8px_rgba(244,63,94,0.4)]";
-              else if (day.status === 'partial') bg = "bg-amber-400";
+              let bg = "bg-slate-800/30 border border-slate-700/20";
+              let glow = "";
+              if (day.total > 0) {
+                const percent = (day.completed / day.total) * 100;
+                if (day.status === 'failed' || percent === 0) {
+                   bg = "bg-rose-500/80";
+                   glow = "hover:shadow-[0_0_12px_rgba(244,63,94,0.4)]";
+                } else if (percent === 100) {
+                   bg = "bg-emerald-500";
+                   glow = "hover:shadow-[0_0_12px_rgba(16,185,129,0.4)]";
+                } else if (percent >= 50) {
+                   bg = "bg-emerald-600/60";
+                   glow = "hover:shadow-[0_0_12px_rgba(5,150,105,0.4)]";
+                } else {
+                   bg = "bg-slate-700";
+                   glow = "hover:shadow-[0_0_12px_rgba(51,65,85,0.4)]";
+                }
+              }
               
               return (
                 <div 
                   key={day.date}
-                  title={`${day.date}: ${day.completed}/${day.total} done`}
-                  className={`w-[14px] h-[14px] rounded-[3px] transition-colors ${bg}`}
+                  onMouseEnter={(e) => {
+                    const rect = e.currentTarget.getBoundingClientRect();
+                    setHoveredCell({ date: day.date, completed: day.completed, total: day.total, x: rect.left + rect.width / 2, y: rect.top - 8 });
+                  }}
+                  onMouseLeave={() => setHoveredCell(null)}
+                  className={`w-[14px] h-[14px] rounded-[4px] transition-all duration-200 ease-out hover:scale-125 hover:z-10 cursor-pointer ${bg} ${glow}`}
                 />
               )
             })}
@@ -238,6 +257,25 @@ export default function Dashboard({ tasks }: DashboardProps) {
           </table>
         </div>
       </div>
+
+      {/* Heatmap Custom Tooltip Portal */}
+      {hoveredCell && (
+        <div 
+          className="fixed z-50 -translate-x-1/2 -translate-y-full bg-slate-950/80 backdrop-blur-md border border-slate-800 rounded-xl p-3 shadow-2xl shadow-black/60 pointer-events-none animate-fade-in"
+          style={{ left: hoveredCell.x, top: hoveredCell.y }}
+        >
+          <div className="text-sm font-medium text-white mb-1">
+            📅 {new Date(hoveredCell.date).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
+          </div>
+          <div className="text-xs text-slate-300">
+            {hoveredCell.total === 0 ? (
+              <span className="text-slate-500">No tasks scheduled</span>
+            ) : (
+              <span>🎯 {hoveredCell.completed} / {hoveredCell.total} Tasks Completed ({Math.round((hoveredCell.completed / hoveredCell.total) * 100)}%)</span>
+            )}
+          </div>
+        </div>
+      )}
     </div>
   );
 }

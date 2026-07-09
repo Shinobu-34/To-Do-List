@@ -12,6 +12,7 @@ import {
   isToday,
   isOverdue,
   isUpcoming,
+  DEFAULT_CATEGORIES,
 } from './utils';
 import Sidebar from './components/Sidebar';
 import Header from './components/Header';
@@ -37,7 +38,7 @@ export default function App() {
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
   const [toasts, setToasts] = useState<ToastData[]>([]);
   const [activeZenTask, setActiveZenTask] = useState<Task | null>(null);
-  const [customSpaces, setCustomSpaces] = useState<string[]>([]);
+  const [customSpaces, setCustomSpaces] = useState<string[]>(DEFAULT_CATEGORIES);
 
   // ── Client-side mount: load from localStorage ──
   useEffect(() => {
@@ -51,7 +52,12 @@ export default function App() {
     try {
       const rawSpaces = localStorage.getItem('taskdo_spaces');
       if (rawSpaces) {
-        setCustomSpaces(JSON.parse(rawSpaces));
+        const parsed = JSON.parse(rawSpaces);
+        if (Array.isArray(parsed)) {
+          // Merge saved custom spaces with our new master list
+          const merged = Array.from(new Set([...DEFAULT_CATEGORIES, ...parsed]));
+          setCustomSpaces(merged);
+        }
       }
     } catch (e) {
       console.error(e);

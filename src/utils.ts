@@ -233,4 +233,4 @@ export function getCategoryColor(category: string): string {
 }
 
 // ── Default categories ──
-export const DEFAULT_CATEGORIES = ['Work', 'Personal', 'Fitness', 'Health', 'Finance', 'Learning'];
+export const DEFAULT_CATEGORIES = ['Finance', 'Fitness', 'Health', 'Imp. Work', 'Learning', 'Personal', 'Work'];

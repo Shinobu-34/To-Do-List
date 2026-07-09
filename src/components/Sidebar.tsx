@@ -12,6 +12,7 @@ import {
   ShoppingBag,
   Plus,
 } from 'lucide-react';
+import { useState, useEffect, useRef } from 'react';
 import type { ActiveFilter, UserStats } from '../types';
 import { getCategoryColor, getSpaceIcon } from '../utils';
 
@@ -27,6 +28,7 @@ interface SidebarProps {
   theme: 'light' | 'dark';
   onToggleTheme: () => void;
   userStats: UserStats;
+  onAddSpace?: (space: string) => void;
 }
 
 interface NavItem {
@@ -55,9 +57,43 @@ export default function Sidebar({
   theme,
   onToggleTheme,
   userStats,
+  onAddSpace,
 }: SidebarProps) {
+  const [isSpaceModalOpen, setIsSpaceModalOpen] = useState(false);
+  const [newSpaceName, setNewSpaceName] = useState('');
+  const inputRef = useRef<HTMLInputElement>(null);
+
+  // Auto-focus input when modal opens
+  useEffect(() => {
+    if (isSpaceModalOpen) {
+      setTimeout(() => inputRef.current?.focus(), 50);
+    }
+  }, [isSpaceModalOpen]);
+
+  // Handle escape key
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape' && isSpaceModalOpen) {
+        setIsSpaceModalOpen(false);
+        setNewSpaceName('');
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [isSpaceModalOpen]);
+
+  const handleCreateSpace = () => {
+    const trimmed = newSpaceName.trim();
+    if (trimmed && onAddSpace) {
+      onAddSpace(trimmed);
+    }
+    setIsSpaceModalOpen(false);
+    setNewSpaceName('');
+  };
+
   const xpProgress = (userStats.xp % 1000) / 10; // since 1000 is max per level, 1000/10 = 100%
   return (
+    <>
     <aside
       className={`
         fixed top-0 left-0 z-50 h-full w-[260px]
@@ -163,7 +199,7 @@ export default function Sidebar({
         })}
 
         {/* Spaces Section */}
-        {categories.length > 0 && (
+        {categories.length >= 0 && (
           <div className="pt-4">
             <div className="flex items-center justify-between px-3 pb-2">
               <p className="text-[11px] font-semibold uppercase tracking-wider text-gray-400 dark:text-gray-500">
@@ -172,13 +208,7 @@ export default function Sidebar({
               <button 
                 className="text-gray-400 hover:text-brand-500 transition-colors"
                 title="Create Space"
-                onClick={() => {
-                   // Prompt for a new space name. In a full app, this would open a modal.
-                   const name = window.prompt("Enter new space name:");
-                   // we need a prop for this, but for now we'll rely on the task creation to dynamically create spaces if needed,
-                   // or we can implement an explicit onAddCategory if required. Since the prompt doesn't specify how to save it if empty, 
-                   // we just let it be a UI button for now, or it can be wired up later.
-                }}
+                onClick={() => setIsSpaceModalOpen(true)}
               >
                 <Plus size={14} />
               </button>
@@ -253,5 +283,50 @@ export default function Sidebar({
         </button>
       </div>
     </aside>
+
+    {/* Custom Space Creation Modal */}
+    {isSpaceModalOpen && (
+      <div 
+        className="fixed inset-0 z-[100] flex items-center justify-center bg-black/60 backdrop-blur-sm animate-fade-in"
+        onClick={() => { setIsSpaceModalOpen(false); setNewSpaceName(''); }}
+      >
+        <div 
+          className="bg-slate-900/90 backdrop-blur-xl max-w-md w-full p-6 mx-4 rounded-2xl border border-slate-800/80 shadow-2xl shadow-black/80 animate-in fade-in zoom-in-95 duration-200"
+          onClick={(e) => e.stopPropagation()}
+        >
+          <h3 className="text-lg font-semibold text-slate-200 mb-2">Create New Space</h3>
+          <p className="text-sm text-slate-400 mb-4">Enter a name for your new organization space.</p>
+          
+          <input
+            ref={inputRef}
+            type="text"
+            value={newSpaceName}
+            onChange={(e) => setNewSpaceName(e.target.value)}
+            onKeyDown={(e) => {
+              if (e.key === 'Enter') handleCreateSpace();
+            }}
+            placeholder="e.g. Side Hustle, Reading List..."
+            className="w-full bg-slate-950/60 border border-slate-800 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-purple-500 focus:ring-1 focus:ring-purple-500/30 transition-all"
+          />
+          
+          <div className="flex justify-end gap-3 mt-6">
+            <button
+              onClick={() => { setIsSpaceModalOpen(false); setNewSpaceName(''); }}
+              className="px-4 py-2 text-slate-400 hover:text-slate-200 font-medium transition-colors"
+            >
+              Cancel
+            </button>
+            <button
+              onClick={handleCreateSpace}
+              disabled={!newSpaceName.trim()}
+              className="px-5 py-2 bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-500 hover:to-indigo-500 text-white rounded-xl font-medium shadow-lg shadow-purple-950/20 active:scale-95 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              OK
+            </button>
+          </div>
+        </div>
+      </div>
+    )}
+    </>
   );
 }

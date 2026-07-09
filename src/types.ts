@@ -12,9 +12,16 @@ export interface Task {
   isCompleted: boolean;
   createdAt: string;       // ISO timestamp
   completedAt?: string;    // ISO timestamp
+  penalized?: boolean;     // True if XP penalty applied
 }
 
-export type ActiveFilter = 'ALL' | 'TODAY' | 'UPCOMING' | 'COMPLETED' | 'DASHBOARD';
+export interface UserStats {
+  xp: number;
+  level: number;
+  coins: number;
+}
+
+export type ActiveFilter = 'ALL' | 'TODAY' | 'UPCOMING' | 'COMPLETED' | 'DASHBOARD' | 'MARKET';
 
 export type SortMode = 'DATE' | 'PRIORITY';
 

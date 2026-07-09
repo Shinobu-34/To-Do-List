@@ -9,9 +9,11 @@ import {
   Tag,
   X,
   LineChart,
+  ShoppingBag,
+  Plus,
 } from 'lucide-react';
-import type { ActiveFilter } from '../types';
-import { getCategoryColor } from '../utils';
+import type { ActiveFilter, UserStats } from '../types';
+import { getCategoryColor, getSpaceIcon } from '../utils';
 
 interface SidebarProps {
   isOpen: boolean;
@@ -24,6 +26,7 @@ interface SidebarProps {
   onCategorySelect: (category: string) => void;
   theme: 'light' | 'dark';
   onToggleTheme: () => void;
+  userStats: UserStats;
 }
 
 interface NavItem {
@@ -51,7 +54,9 @@ export default function Sidebar({
   onCategorySelect,
   theme,
   onToggleTheme,
+  userStats,
 }: SidebarProps) {
+  const xpProgress = (userStats.xp % 1000) / 10; // since 1000 is max per level, 1000/10 = 100%
   return (
     <aside
       className={`
@@ -66,9 +71,9 @@ export default function Sidebar({
       `}
       aria-label="Navigation sidebar"
     >
-      {/* Brand */}
-      <header className="px-5 pt-6 pb-4 flex items-center justify-between">
-        <div className="flex items-center gap-2.5">
+      {/* Brand & XP */}
+      <header className="px-5 pt-6 pb-4 relative flex flex-col">
+        <div className="flex items-center gap-2.5 mb-4">
           <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-brand-500 to-purple-600 flex items-center justify-center shadow-lg shadow-brand-500/25">
             <Sparkles size={18} className="text-white" />
           </div>
@@ -81,9 +86,27 @@ export default function Sidebar({
             </p>
           </div>
         </div>
+        
+        {/* Minimalist XP Progress Bar */}
+        <div className="w-full">
+          <div className="flex justify-between items-end mb-1.5">
+            <span className="text-[10px] font-bold tracking-wider text-gray-500 dark:text-gray-400 uppercase">
+              Level {userStats.level}
+            </span>
+            <span className="text-[10px] font-medium text-brand-600 dark:text-brand-400">
+              {userStats.xp} XP
+            </span>
+          </div>
+          <div className="h-1.5 w-full bg-gray-100 dark:bg-white/10 rounded-full overflow-hidden">
+            <div 
+              className="h-full bg-gradient-to-r from-brand-500 to-purple-500 rounded-full transition-all duration-500 ease-out"
+              style={{ width: `${xpProgress}%` }}
+            />
+          </div>
+        </div>
         <button
           onClick={onClose}
-          className="lg:hidden p-1.5 rounded-lg hover:bg-gray-100 dark:hover:bg-white/5 text-gray-400 transition-colors"
+          className="lg:hidden absolute top-6 right-5 p-1.5 rounded-lg hover:bg-gray-100 dark:hover:bg-white/5 text-gray-400 transition-colors"
           aria-label="Close sidebar"
         >
           <X size={18} />
@@ -139,12 +162,27 @@ export default function Sidebar({
           );
         })}
 
-        {/* Categories Section */}
+        {/* Spaces Section */}
         {categories.length > 0 && (
           <div className="pt-4">
-            <p className="px-3 pb-2 text-[11px] font-semibold uppercase tracking-wider text-gray-400 dark:text-gray-500">
-              Categories
-            </p>
+            <div className="flex items-center justify-between px-3 pb-2">
+              <p className="text-[11px] font-semibold uppercase tracking-wider text-gray-400 dark:text-gray-500">
+                Spaces
+              </p>
+              <button 
+                className="text-gray-400 hover:text-brand-500 transition-colors"
+                title="Create Space"
+                onClick={() => {
+                   // Prompt for a new space name. In a full app, this would open a modal.
+                   const name = window.prompt("Enter new space name:");
+                   // we need a prop for this, but for now we'll rely on the task creation to dynamically create spaces if needed,
+                   // or we can implement an explicit onAddCategory if required. Since the prompt doesn't specify how to save it if empty, 
+                   // we just let it be a UI button for now, or it can be wired up later.
+                }}
+              >
+                <Plus size={14} />
+              </button>
+            </div>
             {categories.map((cat) => {
               const isActive = selectedCategory === cat;
               return (
@@ -161,7 +199,7 @@ export default function Sidebar({
                     }
                   `}
                 >
-                  <span className={`w-2.5 h-2.5 rounded-full ${getCategoryColor(cat)}`} />
+                  <span className="text-lg leading-none w-5 text-center flex-shrink-0">{getSpaceIcon(cat)}</span>
                   <span className="flex-1 text-left">{cat}</span>
                   <Tag size={14} className="text-gray-300 dark:text-gray-600 opacity-0 group-hover:opacity-100 transition-opacity" />
                 </button>
@@ -171,8 +209,22 @@ export default function Sidebar({
         )}
       </nav>
 
-      {/* Theme Toggle */}
-      <div className="px-4 py-4 border-t border-gray-100 dark:border-white/5">
+      {/* Bottom Section */}
+      <div className="px-4 py-4 border-t border-gray-100 dark:border-white/5 space-y-2">
+        <button
+          onClick={() => onFilterChange('MARKET')}
+          className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all duration-200
+            ${activeFilter === 'MARKET'
+              ? 'bg-amber-500/10 text-amber-600 dark:bg-amber-500/15 dark:text-amber-400'
+              : 'text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-white/5 hover:text-gray-900 dark:hover:text-white'
+            }`}
+        >
+          <span className={activeFilter === 'MARKET' ? 'text-amber-500' : 'text-gray-400 dark:text-gray-500'}>
+            <ShoppingBag size={18} />
+          </span>
+          <span>Dopamine Market</span>
+        </button>
+
         <button
           onClick={onToggleTheme}
           className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium

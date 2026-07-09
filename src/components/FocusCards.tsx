@@ -1,5 +1,5 @@
 import { useState, useMemo } from 'react';
-import { Repeat, CheckCircle } from 'lucide-react';
+import { Repeat, CheckCircle, Play } from 'lucide-react';
 import type { Task } from '../types';
 import { getTodayISO, isOverdue, PRIORITY_CONFIG } from '../utils';
 import ConfettiButton from './ConfettiButton';
@@ -7,9 +7,10 @@ import ConfettiButton from './ConfettiButton';
 interface FocusCardsProps {
   tasks: Task[];
   onComplete: (taskId: string) => void;
+  onPlay?: (task: Task) => void;
 }
 
-export default function FocusCards({ tasks, onComplete }: FocusCardsProps) {
+export default function FocusCards({ tasks, onComplete, onPlay }: FocusCardsProps) {
   const [skippedTaskIds, setSkippedTaskIds] = useState<Set<string>>(new Set());
   const [animatingOutId, setAnimatingOutId] = useState<string | null>(null);
 
@@ -99,15 +100,27 @@ export default function FocusCards({ tasks, onComplete }: FocusCardsProps) {
                   </h3>
                 </div>
                 
-                {/* Skip button */}
-                <button
-                  type="button"
-                  onClick={() => handleSkip(task.id)}
-                  className="p-1.5 text-gray-400 hover:text-white bg-white/5 hover:bg-white/10 rounded-full transition-colors shrink-0"
-                  title="Vibe Shift (Skip)"
-                >
-                  <Repeat size={14} />
-                </button>
+                {/* Actions */}
+                <div className="flex items-center gap-1 shrink-0">
+                  {onPlay && (
+                    <button
+                      type="button"
+                      onClick={() => onPlay(task)}
+                      className="p-1.5 text-brand-400 hover:text-white bg-white/5 hover:bg-brand-500 rounded-full transition-colors"
+                      title="Start Focus Session"
+                    >
+                      <Play size={14} />
+                    </button>
+                  )}
+                  <button
+                    type="button"
+                    onClick={() => handleSkip(task.id)}
+                    className="p-1.5 text-gray-400 hover:text-white bg-white/5 hover:bg-white/10 rounded-full transition-colors"
+                    title="Vibe Shift (Skip)"
+                  >
+                    <Repeat size={14} />
+                  </button>
+                </div>
               </div>
 
               <div className="flex items-center justify-between mt-2">

@@ -7,6 +7,7 @@ interface TaskListProps {
   onToggle: (taskId: string) => void;
   onDelete: (taskId: string) => void;
   onUpdate: (taskId: string, updates: Partial<Task>) => void;
+  onPlay?: (task: Task) => void;
   activeFilter: ActiveFilter;
   searchQuery: string;
 }
@@ -16,6 +17,7 @@ export default function TaskList({
   onToggle,
   onDelete,
   onUpdate,
+  onPlay,
   activeFilter,
   searchQuery,
 }: TaskListProps) {
@@ -57,6 +59,7 @@ export default function TaskList({
                 onToggle={onToggle}
                 onDelete={onDelete}
                 onUpdate={onUpdate}
+                onPlay={onPlay}
                 index={index}
               />
             ))}

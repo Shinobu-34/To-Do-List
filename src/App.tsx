@@ -1,10 +1,12 @@
 import { useState, useEffect, useMemo, useCallback } from 'react';
-import type { Task, ActiveFilter, SortMode, ToastData } from './types';
+import type { Task, ActiveFilter, SortMode, ToastData, UserStats } from './types';
 import {
   loadTasks,
   saveTasks,
   loadTheme,
   saveTheme,
+  loadStats,
+  saveStats,
   generateId,
   getTodayISO,
   isToday,
@@ -19,10 +21,13 @@ import Dashboard from './components/Dashboard';
 import TaskList from './components/TaskList';
 import Toast from './components/Toast';
 import VibeBuddy from './components/VibeBuddy';
+import ZenMode from './components/ZenMode';
+import DopamineMarket from './components/DopamineMarket';
 
 export default function App() {
   // ── Hydration-safe state init ──
   const [tasks, setTasks] = useState<Task[]>([]);
+  const [userStats, setUserStats] = useState<UserStats>({ xp: 0, level: 1, coins: 0 });
   const [mounted, setMounted] = useState(false);
   const [theme, setTheme] = useState<'light' | 'dark'>('light');
   const [activeFilter, setActiveFilter] = useState<ActiveFilter>('ALL');
@@ -31,6 +36,8 @@ export default function App() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
   const [toasts, setToasts] = useState<ToastData[]>([]);
+  const [activeZenTask, setActiveZenTask] = useState<Task | null>(null);
+  const [customSpaces, setCustomSpaces] = useState<string[]>([]);
 
   // ── Client-side mount: load from localStorage ──
   useEffect(() => {
@@ -38,6 +45,18 @@ export default function App() {
     setTasks(loadedTasks);
     const loadedTheme = loadTheme();
     setTheme(loadedTheme);
+    const loadedStats = loadStats();
+    setUserStats(loadedStats);
+    
+    try {
+      const rawSpaces = localStorage.getItem('taskdo_spaces');
+      if (rawSpaces) {
+        setCustomSpaces(JSON.parse(rawSpaces));
+      }
+    } catch (e) {
+      console.error(e);
+    }
+    
     setMounted(true);
   }, []);
 
@@ -47,6 +66,20 @@ export default function App() {
       saveTasks(tasks);
     }
   }, [tasks, mounted]);
+
+  // ── Persist stats on change ──
+  useEffect(() => {
+    if (mounted) {
+      saveStats(userStats);
+    }
+  }, [userStats, mounted]);
+
+  // ── Persist spaces on change ──
+  useEffect(() => {
+    if (mounted) {
+      localStorage.setItem('taskdo_spaces', JSON.stringify(customSpaces));
+    }
+  }, [customSpaces, mounted]);
 
   // ── Apply theme class to <html> ──
   useEffect(() => {
@@ -85,6 +118,32 @@ export default function App() {
     }, 300);
   }, []);
 
+  // ── Penalty Check on Mount ──
+  useEffect(() => {
+    if (mounted) {
+      setTasks(prev => {
+        let changed = false;
+        const penalties = prev.filter(t => !t.isCompleted && !t.penalized && isOverdue(t.dueDate)).length;
+        
+        if (penalties > 0) {
+          changed = true;
+          setUserStats(stats => {
+            const newXp = Math.max(0, stats.xp - penalties * 20);
+            return { ...stats, xp: newXp };
+          });
+          setTimeout(() => addToast({ message: `Penalty! -${penalties * 20} XP for overdue tasks.` }), 1000);
+        }
+
+        return changed ? prev.map(t => {
+          if (!t.isCompleted && !t.penalized && isOverdue(t.dueDate)) {
+            return { ...t, penalized: true };
+          }
+          return t;
+        }) : prev;
+      });
+    }
+  }, [mounted, addToast]);
+
   // ── Task CRUD ──
   const addTask = useCallback((taskData: Omit<Task, 'id' | 'createdAt' | 'isCompleted'>) => {
     const newTask: Task = {
@@ -102,6 +161,35 @@ export default function App() {
       prev.map((t) => {
         if (t.id === taskId) {
           const nextState = !t.isCompleted;
+          
+          if (nextState) {
+            let xpGained = 10;
+            let coinsGained = 10;
+            if (t.priority === 'HIGH') { xpGained = 50; coinsGained = 50; }
+            else if (t.priority === 'MEDIUM') { xpGained = 30; coinsGained = 30; }
+
+            setUserStats(stats => {
+              const newXp = stats.xp + xpGained;
+              const newCoins = stats.coins + coinsGained;
+              const newLevel = Math.floor(newXp / 1000) + 1;
+              
+              if (newLevel > stats.level) {
+                import(/* @vite-ignore */ 'canvas-confetti').then((confetti) => {
+                   if (confetti.default) {
+                     confetti.default({ particleCount: 150, spread: 70, origin: { y: 0.6 } });
+                   } else {
+                     confetti({ particleCount: 150, spread: 70, origin: { y: 0.6 } });
+                   }
+                }).catch(() => {}); 
+                setTimeout(() => {
+                   addToast({ message: `🎉 LEVEL UP! You reached Level ${newLevel}!` });
+                }, 500);
+              }
+              
+              return { xp: newXp, level: newLevel, coins: newCoins };
+            });
+          }
+
           return {
             ...t,
             isCompleted: nextState,
@@ -111,7 +199,7 @@ export default function App() {
         return t;
       })
     );
-  }, []);
+  }, [addToast]);
 
   const deleteTask = useCallback((taskId: string) => {
     let deletedTask: Task | undefined;
@@ -139,17 +227,17 @@ export default function App() {
     );
   }, []);
 
-  // ── Derived: categories from tasks ──
+  // ── Derived: categories from tasks + custom spaces ──
   const categories = useMemo(() => {
-    const cats = new Set(tasks.map((t) => t.category));
+    const cats = new Set([...customSpaces, ...tasks.map((t) => t.category)]);
     return Array.from(cats).sort();
-  }, [tasks]);
+  }, [tasks, customSpaces]);
 
   // ── Derived: filter counts ──
   const filterCounts = useMemo(() => {
     const active = tasks.filter((t) => !t.isCompleted);
     return {
-      ALL: tasks.length,
+      ALL: active.length,
       TODAY: active.filter((t) => isToday(t.dueDate)).length,
       UPCOMING: active.filter((t) => isUpcoming(t.dueDate)).length,
       COMPLETED: tasks.filter((t) => t.isCompleted).length,
@@ -287,8 +375,14 @@ export default function App() {
           setSelectedCategory(cat === selectedCategory ? null : cat);
           setSidebarOpen(false);
         }}
+        onAddSpace={(space) => {
+          if (!customSpaces.includes(space)) {
+            setCustomSpaces([...customSpaces, space]);
+          }
+        }}
         theme={theme}
         onToggleTheme={toggleTheme}
+        userStats={userStats}
       />
 
       {/* Main Content Area */}
@@ -307,9 +401,19 @@ export default function App() {
         <section className="flex-1 px-4 sm:px-6 lg:px-8 pb-8 max-w-4xl w-full mx-auto">
           {activeFilter === 'DASHBOARD' ? (
             <Dashboard tasks={tasks} />
+          ) : activeFilter === 'MARKET' ? (
+            <DopamineMarket 
+              userStats={userStats}
+              onPurchase={(cost, title) => {
+                if (userStats.coins >= cost) {
+                  setUserStats(s => ({ ...s, coins: s.coins - cost }));
+                  addToast({ message: `🎁 Successfully purchased: ${title}!` });
+                }
+              }}
+            />
           ) : (
             <>
-              <FocusCards tasks={tasks} onComplete={(id) => toggleTask(id)} />
+              <FocusCards tasks={tasks} onComplete={(id) => toggleTask(id)} onPlay={setActiveZenTask} />
               <TaskForm onAddTask={addTask} categories={categories} />
 
               <TaskList
@@ -317,6 +421,7 @@ export default function App() {
                 onToggle={toggleTask}
                 onDelete={deleteTask}
                 onUpdate={updateTask}
+                onPlay={setActiveZenTask}
                 activeFilter={activeFilter}
                 searchQuery={searchQuery}
               />
@@ -339,6 +444,28 @@ export default function App() {
         onUpdateTask={updateTask}
         onDeleteTask={deleteTask}
       />
+
+      {/* Zen Mode Overlay */}
+      {activeZenTask && (
+        <ZenMode 
+          task={activeZenTask} 
+          onClose={() => setActiveZenTask(null)} 
+          onComplete={() => {
+            setActiveZenTask(null);
+            // Complete task and trigger toggle handler
+            if (!activeZenTask.isCompleted) {
+              toggleTask(activeZenTask.id);
+            }
+            // Add bonus XP!
+            setUserStats(stats => ({
+              ...stats,
+              xp: stats.xp + 100,
+              coins: stats.coins + 100,
+            }));
+            addToast({ message: `🧘 Zen Mode Complete! +100 XP / Coins` });
+          }} 
+        />
+      )}
     </div>
   );
 }

@@ -127,7 +127,7 @@ export default function Dashboard({ tasks }: DashboardProps) {
           <h3 className="text-sm font-bold text-gray-900 dark:text-white mb-3">35-Day Consistency Heatmap</h3>
           <div className="flex flex-wrap gap-1.5 relative">
             {streakMap.map((day) => {
-              let bg = "bg-slate-800/30 border border-slate-700/20";
+              let bg = "bg-slate-100 border border-slate-200/60 dark:bg-slate-800/40 dark:border-slate-700/30";
               let glow = "";
               if (day.total > 0) {
                 const percent = (day.completed / day.total) * 100;
@@ -135,7 +135,7 @@ export default function Dashboard({ tasks }: DashboardProps) {
                    bg = "bg-rose-500/80";
                    glow = "hover:shadow-[0_0_12px_rgba(244,63,94,0.4)]";
                 } else if (percent === 100) {
-                   bg = "bg-emerald-500";
+                   bg = "bg-emerald-500 text-white dark:bg-emerald-400/90 dark:shadow-[0_0_8px_rgba(52,211,153,0.2)]";
                    glow = "hover:shadow-[0_0_12px_rgba(16,185,129,0.4)]";
                 } else if (percent >= 50) {
                    bg = "bg-emerald-600/60";

@@ -1,4 +1,4 @@
-import type { Task } from './types';
+import type { Task, UserStats } from './types';
 
 // ── UUID v4 generator ──
 export function generateId(): string {
@@ -43,6 +43,30 @@ export function formatDate(dateStr: string): string {
 // ── LocalStorage ──
 const STORAGE_KEY = 'taskdo_tasks';
 const THEME_KEY = 'taskdo_theme';
+const STATS_KEY = 'taskdo_stats';
+
+export function loadStats(): UserStats {
+  try {
+    const raw = localStorage.getItem(STATS_KEY);
+    if (raw) {
+      const parsed = JSON.parse(raw);
+      if (typeof parsed.xp === 'number' && typeof parsed.level === 'number' && typeof parsed.coins === 'number') {
+        return parsed as UserStats;
+      }
+    }
+  } catch {
+    // corrupted data
+  }
+  return { xp: 0, level: 1, coins: 0 };
+}
+
+export function saveStats(stats: UserStats): void {
+  try {
+    localStorage.setItem(STATS_KEY, JSON.stringify(stats));
+  } catch {
+    // quota exceeded — silent fail
+  }
+}
 
 export function loadTasks(): Task[] {
   try {
@@ -189,6 +213,20 @@ export const CATEGORY_COLORS: Record<string, string> = {
   Finance: 'bg-amber-500',
   Learning: 'bg-cyan-500',
 };
+
+export function getSpaceIcon(name: string): string {
+  const lower = name.toLowerCase();
+  if (lower.includes('work') || lower.includes('office') || lower.includes('job')) return '💼';
+  if (lower.includes('gym') || lower.includes('fitness') || lower.includes('workout') || lower.includes('health')) return '🏋️';
+  if (lower.includes('home') || lower.includes('house') || lower.includes('chore')) return '🏠';
+  if (lower.includes('study') || lower.includes('learn') || lower.includes('school')) return '📚';
+  if (lower.includes('code') || lower.includes('programming') || lower.includes('dev')) return '💻';
+  if (lower.includes('finance') || lower.includes('money') || lower.includes('budget')) return '💰';
+  if (lower.includes('grocery') || lower.includes('food') || lower.includes('shop')) return '🛒';
+  if (lower.includes('travel') || lower.includes('trip') || lower.includes('vacation')) return '✈️';
+  if (lower.includes('social') || lower.includes('friend') || lower.includes('family') || lower.includes('party')) return '🎉';
+  return '📁';
+}
 
 export function getCategoryColor(category: string): string {
   return CATEGORY_COLORS[category] || 'bg-gray-500';

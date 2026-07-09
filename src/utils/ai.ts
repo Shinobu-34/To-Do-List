@@ -140,3 +140,48 @@ function parseAIResponse(rawContent: string): AIResponse {
 
   return { text, actions };
 }
+
+export async function generateWeeklyRoast(tasks: Task[]): Promise<string> {
+  const completed = tasks.filter(t => t.isCompleted);
+  const overdue = tasks.filter(t => !t.isCompleted && isOverdue(t.dueDate));
+
+  const prompt = `
+You are VibeBuddy, acting as a witty, slightly sarcastic, yet ultimately supportive life coach. 
+Analyze the user's task performance for the past week based on the following data:
+Completed Tasks: ${completed.length > 0 ? completed.map(t => t.title).join(', ') : 'None!'}
+Overdue/Procrastinated Tasks: ${overdue.length > 0 ? overdue.map(t => t.title).join(', ') : 'None!'}
+
+Write a short, highly engaging "Weekly Wrap & Roast" review (using Markdown).
+- Praise them highly for what they got done.
+- Ruthlessly (yet playfully) roast them for what they procrastinated on.
+- End with a motivational one-liner for the upcoming week.
+Keep it concise, punchy, and formatted beautifully with emojis.
+`;
+
+  try {
+    const response = await fetch('https://openrouter.ai/api/v1/chat/completions', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${OPENROUTER_API_KEY}`,
+        'HTTP-Referer': 'http://localhost:5173',
+        'X-Title': 'To-Do VibeBuddy',
+      },
+      body: JSON.stringify({
+        model: MODEL,
+        messages: [{ role: 'user', content: prompt }],
+        temperature: 0.8,
+      }),
+    });
+
+    if (!response.ok) {
+      throw new Error('Failed to generate roast');
+    }
+
+    const data = await response.json();
+    return data.choices[0].message.content;
+  } catch (error) {
+    console.error('Roast API Error:', error);
+    return "Whoops, I couldn't connect to my brain to roast you. You're safe... for now.";
+  }
+}

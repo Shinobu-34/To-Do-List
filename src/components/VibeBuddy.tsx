@@ -1,7 +1,7 @@
 import { useState, useRef, useEffect } from 'react';
 import { MessageSquare, X, Send, Sparkles, Loader2 } from 'lucide-react';
 import type { Task } from '../types';
-import { sendChatMessage, ChatMessage, TaskAction } from '../utils/ai';
+import { sendChatMessage, ChatMessage, TaskAction, generateWeeklyRoast } from '../utils/ai';
 
 interface VibeBuddyProps {
   tasks: Task[];
@@ -17,6 +17,9 @@ export default function VibeBuddy({ tasks, onAddTask, onUpdateTask, onDeleteTask
   ]);
   const [input, setInput] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+  const [isRoasting, setIsRoasting] = useState(false);
+  const [roastContent, setRoastContent] = useState<string | null>(null);
+  
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
 
@@ -91,7 +94,44 @@ export default function VibeBuddy({ tasks, onAddTask, onUpdateTask, onDeleteTask
     }
   };
 
+  const handleGenerateRoast = async () => {
+    setIsRoasting(true);
+    setRoastContent(null);
+    try {
+      const roast = await generateWeeklyRoast(tasks);
+      setRoastContent(roast);
+      setIsOpen(false); // Close chat to show full screen modal
+    } catch (error) {
+      console.error(error);
+      setRoastContent('Oops. I failed to generate your roast. Be grateful.');
+    } finally {
+      setIsRoasting(false);
+    }
+  };
+
+  // Simple markdown renderer
+  const renderMarkdown = (text: string) => {
+    return text.split('\n').map((line, i) => {
+      if (line.startsWith('# ')) return <h1 key={i} className="text-3xl font-black mb-4 mt-6">{line.slice(2)}</h1>;
+      if (line.startsWith('## ')) return <h2 key={i} className="text-2xl font-bold mb-3 mt-5">{line.slice(3)}</h2>;
+      if (line.startsWith('### ')) return <h3 key={i} className="text-xl font-bold mb-2 mt-4">{line.slice(4)}</h3>;
+      if (line.startsWith('- ')) return <li key={i} className="ml-6 list-disc mb-1">{line.slice(2)}</li>;
+      
+      // Bold text `**text**`
+      const boldParts = line.split(/(\*\*.*?\*\*)/g);
+      const formattedLine = boldParts.map((part, j) => {
+        if (part.startsWith('**') && part.endsWith('**')) {
+          return <strong key={j} className="font-bold text-brand-400">{part.slice(2, -2)}</strong>;
+        }
+        return part;
+      });
+
+      return <p key={i} className="mb-3 leading-relaxed">{formattedLine}</p>;
+    });
+  };
+
   return (
+    <>
     <div ref={containerRef}>
       {/* Floating Action Button */}
       <button
@@ -128,6 +168,18 @@ export default function VibeBuddy({ tasks, onAddTask, onUpdateTask, onDeleteTask
             className="p-1.5 rounded-lg hover:bg-gray-100 dark:hover:bg-white/10 text-gray-400 transition-colors"
           >
             <X size={16} />
+          </button>
+        </div>
+
+        {/* Generate Roast Button */}
+        <div className="px-4 py-2 bg-brand-500/5 border-b border-brand-500/10">
+          <button
+            onClick={handleGenerateRoast}
+            disabled={isRoasting}
+            className="w-full py-2 bg-gradient-to-r from-brand-500 to-purple-500 text-white font-bold rounded-xl text-sm hover:opacity-90 transition-opacity flex items-center justify-center gap-2"
+          >
+            {isRoasting ? <Loader2 size={16} className="animate-spin" /> : <Sparkles size={16} />}
+            {isRoasting ? 'Generating Roast...' : 'Generate Weekly Wrap & Roast'}
           </button>
         </div>
 
@@ -189,5 +241,29 @@ export default function VibeBuddy({ tasks, onAddTask, onUpdateTask, onDeleteTask
         </form>
       </div>
     </div>
+
+      {/* Roast Modal */}
+      {roastContent && (
+        <div className="fixed inset-0 z-[200] bg-black/80 backdrop-blur-sm flex items-center justify-center p-4 animate-fade-in">
+          <div className="bg-white dark:bg-surface-dark-card w-full max-w-2xl max-h-[80vh] rounded-3xl shadow-2xl border border-gray-200 dark:border-white/10 overflow-hidden flex flex-col animate-slide-up">
+            <div className="flex justify-between items-center p-6 border-b border-gray-100 dark:border-white/10 bg-gradient-to-r from-brand-500/10 to-purple-500/10">
+              <h2 className="text-2xl font-black text-gray-900 dark:text-white flex items-center gap-2">
+                <Sparkles className="text-brand-500" /> Weekly Wrap & Roast
+              </h2>
+              <button 
+                onClick={() => setRoastContent(null)}
+                className="p-2 bg-gray-100 hover:bg-gray-200 dark:bg-white/5 dark:hover:bg-white/10 rounded-full transition-colors text-gray-500"
+              >
+                <X size={20} />
+              </button>
+            </div>
+            
+            <div className="p-6 overflow-y-auto text-gray-800 dark:text-gray-200 text-lg">
+              {renderMarkdown(roastContent)}
+            </div>
+          </div>
+        </div>
+      )}
+    </>
   );
 }

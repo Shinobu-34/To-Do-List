@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Check, Trash2, Calendar, ChevronDown, Pencil, Flag } from 'lucide-react';
+import { Check, Trash2, Calendar, ChevronDown, Pencil, Flag, Play } from 'lucide-react';
 import type { Task, PriorityLevel } from '../types';
 import { formatDate, isOverdue, PRIORITY_CONFIG, getCategoryColor, DEFAULT_CATEGORIES } from '../utils';
 import CustomSelect from './CustomSelect';
@@ -10,6 +10,7 @@ interface TaskItemProps {
   onToggle: (taskId: string) => void;
   onDelete: (taskId: string) => void;
   onUpdate: (taskId: string, updates: Partial<Task>) => void;
+  onPlay?: (task: Task) => void;
   index: number;
 }
 
@@ -45,7 +46,7 @@ const CATEGORY_OPTIONS = DEFAULT_CATEGORIES.map((cat) => ({
   icon: <span className={`w-2.5 h-2.5 rounded-full ${getCategoryColor(cat)}`} />,
 }));
 
-export default function TaskItem({ task, onToggle, onDelete, onUpdate, index }: TaskItemProps) {
+export default function TaskItem({ task, onToggle, onDelete, onUpdate, onPlay, index }: TaskItemProps) {
   const [expanded, setExpanded] = useState(false);
   const [editing, setEditing] = useState(false);
   const [editTitle, setEditTitle] = useState(task.title);
@@ -250,6 +251,16 @@ export default function TaskItem({ task, onToggle, onDelete, onUpdate, index }: 
         {/* Actions */}
         {!editing && (
           <div className="flex items-center gap-0.5 opacity-0 group-hover:opacity-100 transition-opacity duration-200 shrink-0">
+            {onPlay && !task.isCompleted && (
+              <button
+                onClick={() => onPlay(task)}
+                className="p-1.5 rounded-lg hover:bg-brand-50 dark:hover:bg-brand-500/10
+                           text-brand-500/70 hover:text-brand-500 transition-colors"
+                title="Start Focus Session"
+              >
+                <Play size={14} />
+              </button>
+            )}
             <button
               onClick={() => setEditing(true)}
               className="p-1.5 rounded-lg hover:bg-gray-100 dark:hover:bg-white/5

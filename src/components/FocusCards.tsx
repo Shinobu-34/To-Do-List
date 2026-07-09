@@ -1,5 +1,5 @@
 import { useState, useMemo } from 'react';
-import { Repeat, CheckCircle, Play } from 'lucide-react';
+import { Repeat, CheckCircle, Play, Info, X } from 'lucide-react';
 import type { Task } from '../types';
 import { getTodayISO, isOverdue, PRIORITY_CONFIG } from '../utils';
 import ConfettiButton from './ConfettiButton';
@@ -13,6 +13,23 @@ interface FocusCardsProps {
 export default function FocusCards({ tasks, onComplete, onPlay }: FocusCardsProps) {
   const [skippedTaskIds, setSkippedTaskIds] = useState<Set<string>>(new Set());
   const [animatingOutId, setAnimatingOutId] = useState<string | null>(null);
+  const [detailsState, setDetailsState] = useState<Record<string, { expanded: boolean, anim: string }>>({});
+
+  const ANIMATION_STYLES = [
+    'anim-flip3d', 'anim-circleRipple', 'anim-elasticPop', 'anim-blurUnveil',
+    'anim-slideReveal', 'anim-foldOpen', 'anim-diagonalWipe', 'anim-pivotSkew'
+  ];
+
+  const toggleDetails = (taskId: string) => {
+    setDetailsState((prev) => {
+      const current = prev[taskId];
+      if (current?.expanded) {
+        return { ...prev, [taskId]: { expanded: false, anim: current.anim } };
+      }
+      const randomAnim = ANIMATION_STYLES[Math.floor(Math.random() * ANIMATION_STYLES.length)];
+      return { ...prev, [taskId]: { expanded: true, anim: randomAnim } };
+    });
+  };
 
   // Derive focus tasks
   const focusTasks = useMemo(() => {
@@ -95,7 +112,10 @@ export default function FocusCards({ tasks, onComplete, onPlay }: FocusCardsProp
                   <span className="text-[10px] font-bold uppercase tracking-wider text-brand-400 bg-brand-500/10 self-start px-2 py-0.5 rounded-full">
                     {badgeText}
                   </span>
-                  <h3 className={`text-base font-semibold text-white leading-tight ${isAnimatingOut ? 'line-through text-gray-500' : ''} transition-all duration-300`}>
+                  <h3 
+                    className={`text-base font-semibold text-white leading-tight cursor-pointer hover:text-brand-300 ${isAnimatingOut ? 'line-through text-gray-500' : ''} transition-all duration-300`}
+                    onClick={() => task.description && toggleDetails(task.id)}
+                  >
                     {task.title}
                   </h3>
                 </div>
@@ -110,6 +130,16 @@ export default function FocusCards({ tasks, onComplete, onPlay }: FocusCardsProp
                       title="Start Focus Session"
                     >
                       <Play size={14} />
+                    </button>
+                  )}
+                  {task.description && (
+                    <button
+                      type="button"
+                      onClick={() => toggleDetails(task.id)}
+                      className="p-1.5 text-gray-400 hover:text-white bg-white/5 hover:bg-white/10 rounded-full transition-colors"
+                      title="Show details"
+                    >
+                      <Info size={14} />
                     </button>
                   )}
                   <button
@@ -136,6 +166,26 @@ export default function FocusCards({ tasks, onComplete, onPlay }: FocusCardsProp
                   </div>
                 </ConfettiButton>
               </div>
+
+              {/* Absolute Overlay for Description */}
+              {detailsState[task.id]?.expanded && task.description && (
+                <div 
+                  className={`absolute inset-0 z-10 bg-slate-900/95 dark:bg-surface-dark-card/95 backdrop-blur-2xl rounded-2xl p-4 flex flex-col ${detailsState[task.id].anim}`}
+                >
+                  <div className="flex justify-between items-center mb-3">
+                    <h4 className="text-xs font-bold uppercase tracking-wider text-brand-400">Task Details</h4>
+                    <button 
+                      onClick={() => toggleDetails(task.id)} 
+                      className="p-1 text-gray-400 hover:text-white bg-white/5 hover:bg-white/10 rounded-full transition-colors"
+                    >
+                      <X size={14} />
+                    </button>
+                  </div>
+                  <div className="text-sm text-gray-300 overflow-y-auto scrollbar-none flex-1 pb-2">
+                    {task.description}
+                  </div>
+                </div>
+              )}
             </div>
           );
         })}

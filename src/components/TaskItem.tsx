@@ -46,8 +46,14 @@ const CATEGORY_OPTIONS = DEFAULT_CATEGORIES.map((cat) => ({
   icon: <span className={`w-2.5 h-2.5 rounded-full ${getCategoryColor(cat)}`} />,
 }));
 
+const ANIMATION_STYLES = [
+  'anim-flip3d', 'anim-circleRipple', 'anim-elasticPop', 'anim-blurUnveil',
+  'anim-slideReveal', 'anim-foldOpen', 'anim-diagonalWipe', 'anim-pivotSkew'
+];
+
 export default function TaskItem({ task, onToggle, onDelete, onUpdate, onPlay, index }: TaskItemProps) {
   const [expanded, setExpanded] = useState(false);
+  const [activeAnim, setActiveAnim] = useState('anim-slideReveal');
   const [editing, setEditing] = useState(false);
   const [editTitle, setEditTitle] = useState(task.title);
   const [editDescription, setEditDescription] = useState(task.description || '');
@@ -230,7 +236,13 @@ export default function TaskItem({ task, onToggle, onDelete, onUpdate, onPlay, i
               {/* Expandable description */}
               {task.description && (
                 <button
-                  onClick={() => setExpanded(!expanded)}
+                  onClick={() => {
+                    if (!expanded) {
+                      const randomAnim = ANIMATION_STYLES[Math.floor(Math.random() * ANIMATION_STYLES.length)];
+                      setActiveAnim(randomAnim);
+                    }
+                    setExpanded(!expanded);
+                  }}
                   className="flex items-center gap-1 mt-2 text-[11px] text-gray-400 dark:text-gray-500
                              hover:text-gray-600 dark:hover:text-gray-300 transition-colors"
                   aria-expanded={expanded}
@@ -240,9 +252,11 @@ export default function TaskItem({ task, onToggle, onDelete, onUpdate, onPlay, i
                 </button>
               )}
               {expanded && task.description && (
-                <p className="mt-2 text-sm text-gray-500 dark:text-gray-400 leading-relaxed line-clamp-4 animate-fade-in">
-                  {task.description}
-                </p>
+                <div className="overflow-hidden mt-2">
+                  <p className={`text-sm text-gray-500 dark:text-gray-400 leading-relaxed line-clamp-4 ${activeAnim}`}>
+                    {task.description}
+                  </p>
+                </div>
               )}
             </>
           )}

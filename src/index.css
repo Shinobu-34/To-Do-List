@@ -98,3 +98,72 @@ html.dark body {
     transform: translateY(0);
   }
 }
+
+/* ── 8 Randomized Micro-Animations for Descriptions ── */
+
+.anim-flip3d {
+  perspective: 1000px;
+  transform-style: preserve-3d;
+  animation: flip3d 300ms ease-out forwards;
+}
+@keyframes flip3d {
+  0% { transform: rotateX(90deg); opacity: 0; }
+  100% { transform: rotateX(0deg); opacity: 1; }
+}
+
+.anim-circleRipple {
+  animation: circleRipple 350ms ease-out forwards;
+}
+@keyframes circleRipple {
+  0% { clip-path: circle(0% at 50% 0%); opacity: 0; }
+  100% { clip-path: circle(150% at 50% 0%); opacity: 1; }
+}
+
+.anim-elasticPop {
+  animation: elasticPop 350ms cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+}
+@keyframes elasticPop {
+  0% { transform: scale(0.9); opacity: 0; }
+  100% { transform: scale(1); opacity: 1; }
+}
+
+.anim-blurUnveil {
+  animation: blurUnveil 300ms ease-out forwards;
+}
+@keyframes blurUnveil {
+  0% { filter: blur(12px); opacity: 0; }
+  100% { filter: blur(0px); opacity: 1; }
+}
+
+.anim-slideReveal {
+  animation: slideReveal 250ms ease-out forwards;
+}
+@keyframes slideReveal {
+  0% { transform: translateY(-15px); opacity: 0; }
+  100% { transform: translateY(0); opacity: 1; }
+}
+
+.anim-foldOpen {
+  transform-origin: top;
+  animation: foldOpen 300ms ease-out forwards;
+}
+@keyframes foldOpen {
+  0% { transform: rotateX(-90deg); opacity: 0; }
+  100% { transform: rotateX(0deg); opacity: 1; }
+}
+
+.anim-diagonalWipe {
+  animation: diagonalWipe 350ms ease-out forwards;
+}
+@keyframes diagonalWipe {
+  0% { clip-path: polygon(0 0, 0 0, 0 100%, 0% 100%); opacity: 0; }
+  100% { clip-path: polygon(0 0, 100% 0, 100% 100%, 0 100%); opacity: 1; }
+}
+
+.anim-pivotSkew {
+  animation: pivotSkew 300ms ease-out forwards;
+}
+@keyframes pivotSkew {
+  0% { transform: skewX(-10deg) translateX(-20px); opacity: 0; }
+  100% { transform: skewX(0deg) translateX(0); opacity: 1; }
+}

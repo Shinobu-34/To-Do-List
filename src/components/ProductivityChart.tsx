@@ -14,6 +14,8 @@ interface ProductivityChartProps {
 
 export default function ProductivityChart({ streakMap, tasks }: ProductivityChartProps) {
   const [hoverIndex, setHoverIndex] = useState<number | null>(null);
+  const [activeRingSegment, setActiveRingSegment] = useState<string | null>(null);
+  const [tooltipPos, setTooltipPos] = useState({ x: 0, y: 0 });
 
   // 1. Line Chart Data (Last 7 Days)
   const chartData = useMemo(() => {
@@ -101,13 +103,14 @@ export default function ProductivityChart({ streakMap, tasks }: ProductivityChar
       { name: 'Low', value: lowCount, color: '#10b981' }
     ].filter(d => d.value > 0);
 
-    const ringSegments: { name: string; percentage: number; offset: number; hexColor: string }[] = [];
+    const ringSegments: { name: string; value: number; percentage: number; offset: number; hexColor: string }[] = [];
     let cumulativeOffset = 0;
     
     rawRingData.forEach(d => {
       const percentage = (d.value / totalCompleted) * 100;
       ringSegments.push({
         name: d.name,
+        value: d.value,
         percentage,
         offset: cumulativeOffset,
         hexColor: d.color
@@ -257,24 +260,36 @@ export default function ProductivityChart({ streakMap, tasks }: ProductivityChar
             No completed tasks yet.
           </div>
         ) : (
-          <div className="flex-1 flex flex-col items-center justify-center">
-            <div className="relative w-40 h-40 mb-6">
+          <div className="flex-1 flex flex-col items-center justify-center relative">
+            <div 
+              className="relative w-40 h-40 mb-6"
+              onMouseMove={(e) => {
+                const rect = e.currentTarget.getBoundingClientRect();
+                setTooltipPos({
+                  x: e.clientX - rect.left,
+                  y: e.clientY - rect.top
+                });
+              }}
+              onMouseLeave={() => setActiveRingSegment(null)}
+            >
               <svg viewBox="0 0 100 100" className="w-full h-full transform -rotate-90">
                 <circle cx="50" cy="50" r="40" fill="none" stroke="currentColor" className="text-gray-100 dark:text-white/5" strokeWidth="12" />
                 {donutData.ringSegments.map((seg) => {
                   const circumference = 2 * Math.PI * 40;
                   const dashValue = (seg.percentage / 100) * circumference;
                   const offsetValue = (seg.offset / 100) * circumference;
+                  const isActive = activeRingSegment === seg.name;
                   return (
                     <circle 
                       key={seg.name}
                       cx="50" cy="50" r="40" 
                       fill="none" 
                       stroke={seg.hexColor}
-                      strokeWidth="12"
+                      strokeWidth={isActive ? "14" : "12"}
                       strokeDasharray={`${dashValue} ${circumference}`}
                       strokeDashoffset={-offsetValue}
-                      className="transition-all duration-1000 ease-out"
+                      className="transition-all duration-300 ease-out cursor-pointer"
+                      onMouseEnter={() => setActiveRingSegment(seg.name)}
                     />
                   );
                 })}
@@ -282,6 +297,31 @@ export default function ProductivityChart({ streakMap, tasks }: ProductivityChar
               <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
                 <span className="text-3xl font-black text-gray-900 dark:text-white leading-none">{donutData.totalCompleted}</span>
                 <span className="text-xs text-gray-500 dark:text-gray-400 font-medium uppercase tracking-wider mt-1">Total</span>
+              </div>
+
+              {/* Custom Hover Tooltip */}
+              <div 
+                className={`absolute bg-slate-950/90 backdrop-blur-xl border border-slate-800/80 rounded-xl p-3 shadow-2xl transition-all duration-150 pointer-events-none z-50 w-max ${activeRingSegment ? 'opacity-100 scale-100' : 'opacity-0 scale-95'}`}
+                style={{ 
+                  left: tooltipPos.x + 15, 
+                  top: tooltipPos.y + 15 
+                }}
+              >
+                {activeRingSegment && (() => {
+                  const seg = donutData.ringSegments.find(s => s.name === activeRingSegment);
+                  if (!seg) return null;
+                  const emoji = seg.name === 'High' ? '🔴' : seg.name === 'Medium' ? '🟡' : '🟢';
+                  return (
+                    <>
+                      <div className="font-bold text-sm text-white whitespace-nowrap mb-1">
+                        {emoji} {seg.name} Priority
+                      </div>
+                      <div className="text-xs text-slate-300 whitespace-nowrap">
+                        ✨ {seg.value} Task{seg.value === 1 ? '' : 's'} Completed
+                      </div>
+                    </>
+                  );
+                })()}
               </div>
             </div>
 
